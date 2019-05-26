@@ -28,45 +28,51 @@ module.exports = function(controller) {
 
 
     controller.hears(['ideastorm'], 'direct_message,direct_mention', function(bot, message) {
-        let ideas = [
-            "A  mobile application that allows passengers and drivers to find each other and exchange payments for rides.",
-            "Develop a platform where individuals can auction their goods to the highest bidder.",
-            "I want to develop software to help early-stage entrepreneurs effortlessly receive data-driven advice about their startup ideas so that they can build valuable companies that solve real problems for customers."
-        ]
-        let index = 0;
-        
 
         bot.createConversation(message, function(err, convo) {
 
-            convo.setVar("ideas", ideas[index % 3]);
+
+            
 
             convo.addQuestion({
-                text : "{{vars.ideas}}"
+                text : "Ok, next. (say 'cancel' when you want to stop)"
             },
             [
                 {
-                    pattern : "ok next",
+                    pattern : "cancel",
                     callback : function(res, convo) {
-                        index++;
-                        if(index > 2) {
-                            convo.stop();
-                        }
-                        convo.gotoThread("idea_thread");
+                        convo.stop();
                         convo.next();
                     }
-                }   
+                },
+                {
+                    default : true,
+                    callback : function(res, convo) {
+                        controller.storage.users.save({ idea : res.text , foo:'bar'}, function(err) {
+                            if(err) {
+                                console.log("some error occured while storing");
+                            }
+                            convo.gotoThread("idea_input_thread");
+                            convo.next();
+                        });
+                    }
+                }
             ],
             {},
-            "idea_thread");
-
-            convo.beforeThread("idea_thread", function(convo, next) {
-                convo.setVar("ideas", ideas[index % 3]);
-                next();
-            })
+            "idea_input_thread");
 
             convo.ask({
-                    text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
-                    action : "idea_thread"
+                text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
+            },
+            function(res, convo) {
+                controller.storage.users.save({ idea : res.text , foo:'bar'}, function(err) {
+                    if(err) {
+                        console.log("some error occured while storing");
+                    }
+                    convo.gotoThread("idea_input_thread");
+                    convo.next();
+                });
+                
             });
 
             convo.activate();
@@ -76,28 +82,22 @@ module.exports = function(controller) {
     });
 
     controller.hears(['list'], 'direct_message,direct_mention', function(bot, message) {
-
-        bot.createConversation(message, function(err, convo) {
-
-
-
-            // create a path for when a user says YES
-            convo.say({
-                text: 'Here is the list of ideas in your binder. Click the idea you want to work on.',
+        controller.storage.users.all( function(err, all_user_data) {
+            let ideas = all_user_data;
+            let index = 0;
+            bot.createConversation(message, function(err, convo) {
+                // create a path for when a user says YES
+                convo.say({
+                    text: 'Here is the list of ideas in your binder. Click the idea you want to work on.',
+                });
+                ideas.forEach( idea => {
+                    convo.say({
+                        text : `${idea.idea}`
+                    })
+                })      
+                convo.activate();
             });
-
-            convo.addMessage({
-                text : "1. A mobile application that allows passengers and drivers to find each other and exchange payments for rides.  (5% complete)"
-            })
-            convo.addMessage({
-                text : "2. Develop a platform where individuals can auction their goods to the highest bidder. (5% complete)"
-            })
-            convo.addMessage({
-                text : "3. I want to develop software to help early-stage entrepreneurs effortlessly receive data-driven advice about their startup ideas so that they can build valuable companies that solve real problems for customers. (80% done)"
-            })
-            convo.activate();
-        });
-
+        })
     });
 
     controller.hears(['deepdive'], 'direct_message,direct_mention', function(bot, message) {
@@ -251,26 +251,21 @@ module.exports = function(controller) {
             ],
             {},
             "response_thread");
-
-            
-           
             convo.ask({
                     text: 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?'
             },function(res, convo) {
-                convo.gotoThread("response_thread");
-                convo.next();
+                controller.storage.users.save({ idea : res.text , foo:'bar'}, function(err) {
+                    if(err) {
+                        console.log("some error occured while storing");
+                    }
+                    convo.gotoThread("response_thread");
+                    convo.next();
+                }); 
+                
             });
-            
-            
-
-
-
             convo.activate();
             
         });
 
     });
-
-
-
 };

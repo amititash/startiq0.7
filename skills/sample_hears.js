@@ -29,7 +29,7 @@ module.exports = function(controller) {
 
 
     controller.hears(['^uptime','^debug'], 'direct_message,direct_mention', function(bot, message) {
-
+        console.log("id", message.user);
         bot.createConversation(message, function(err, convo) {
             if (!err) {
                 convo.setVar('uptime', formatUptime(process.uptime()));
