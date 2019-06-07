@@ -8,6 +8,7 @@ In this example, Botkit hears a keyword, then asks a question. Different paths
 through the conversation are chosen based on the user's response.
 
 */
+const ObjectID = require('mongodb').ObjectID ;
 
 module.exports = function(controller) {
 
@@ -28,12 +29,7 @@ module.exports = function(controller) {
 
 
     controller.hears(['ideastorm'], 'direct_message,direct_mention', function(bot, message) {
-
         bot.createConversation(message, function(err, convo) {
-
-
-            
-
             convo.addQuestion({
                 text : "Ok, next. (say 'cancel' when you want to stop)"
             },
@@ -48,7 +44,7 @@ module.exports = function(controller) {
                 {
                     default : true,
                     callback : function(res, convo) {
-                        controller.storage.users.save({ idea : res.text , foo:'bar'}, function(err) {
+                        controller.storage.users.save({ id : (new ObjectID()).toHexString(), idea : res.text , foo:'bar'}, function(err) {
                             if(err) {
                                 console.log("some error occured while storing");
                             }
@@ -65,9 +61,9 @@ module.exports = function(controller) {
                 text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
             },
             function(res, convo) {
-                controller.storage.users.save({ idea : res.text , foo:'bar'}, function(err) {
+                controller.storage.users.save({ id : (new ObjectID()).toHexString(), idea : res.text , foo:'bar'}, function(err) {
                     if(err) {
-                        console.log("some error occured while storing");
+                        console.log("some error occured while storing",err);
                     }
                     convo.gotoThread("idea_input_thread");
                     convo.next();
@@ -84,9 +80,7 @@ module.exports = function(controller) {
     controller.hears(['list'], 'direct_message,direct_mention', function(bot, message) {
         controller.storage.users.all( function(err, all_user_data) {
             let ideas = all_user_data;
-            let index = 0;
             bot.createConversation(message, function(err, convo) {
-                // create a path for when a user says YES
                 convo.say({
                     text: 'Here is the list of ideas in your binder. Click the idea you want to work on.',
                 });
@@ -101,7 +95,6 @@ module.exports = function(controller) {
     });
 
     controller.hears(['deepdive'], 'direct_message,direct_mention', function(bot, message) {
-
         bot.createConversation(message, function(err, convo) {
 
             convo.addMessage({
@@ -254,7 +247,7 @@ module.exports = function(controller) {
             convo.ask({
                     text: 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?'
             },function(res, convo) {
-                controller.storage.users.save({ idea : res.text , foo:'bar'}, function(err) {
+                controller.storage.users.save({ id : (new ObjectID()).toHexString(), idea : res.text , foo:'bar'}, function(err) {
                     if(err) {
                         console.log("some error occured while storing");
                     }

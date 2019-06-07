@@ -1,0 +1,9 @@
+runtime: nodejs10
+env_variables:
+
+  clientId : "339576418113.635024892114"
+  clientSecret : d06f6a63c56799f65799ab2dad05fa1c
+  clientSigningSecret : 35c88e8209342d4b3e3d5077101ee5d0
+  MONGO_URI : mongodb+srv://yashpratap:startiqtest@cluster0-qsvzx.gcp.mongodb.net/startiq?retryWrites=true&w=majority
+    
+ 
