@@ -4,3 +4,4 @@ node_modules
 components/routes/_*
 .sass-cache/*
 .data/
+config.json

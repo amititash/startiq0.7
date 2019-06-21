@@ -49,6 +49,8 @@ This bot demonstrates many of the core features of Botkit:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 var env = require('node-env-file');
 env(__dirname + '/.env');
+require('dotenv').config();
+
 
 
 if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
@@ -58,6 +60,8 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
 
 var Botkit = require('botkit');
 var debug = require('debug')('botkit:main');
+
+
 
 var bot_options = {
     clientId: process.env.clientId,
@@ -82,6 +86,8 @@ if (process.env.MONGO_URI) {
 var controller = Botkit.slackbot(bot_options);
 
 controller.startTicking();
+
+
 
 // Set up an Express-powered webserver to expose oauth and webhook endpoints
 var webserver = require(__dirname + '/components/express_webserver.js')(controller);
@@ -148,7 +154,7 @@ if (!process.env.clientId || !process.env.clientSecret) {
                   convo.setVar('current_time', new Date());
               }
           }).catch(function(err) {
-              bot.reply(message, 'I experienced an error with a request to Botkit CMS: ' + err);
+              // bot.reply(message, 'I experienced an error with a request to Botkit CMS: ' + err);
               debug('Botkit CMS: ', err);
           });
       });
@@ -171,3 +177,5 @@ function usage_tip() {
     console.log('Get Slack app credentials here: https://api.slack.com/apps')
     console.log('~~~~~~~~~~');
 }
+
+
