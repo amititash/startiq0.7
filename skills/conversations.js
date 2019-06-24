@@ -20,6 +20,8 @@ module.exports = function(controller) {
     
 
     controller.hears(['color'], 'direct_message,direct_mention', function(bot, message) {
+
+
         bot.startConversation(message, function(err, convo) {
             convo.say('This is an example of using convo.ask with a single callback.');
 
@@ -30,6 +32,9 @@ module.exports = function(controller) {
 
             });
         });
+
+
+        
 
     });
 
@@ -62,9 +67,9 @@ module.exports = function(controller) {
                             let url = `${process.env.BACKEND_API_URL}/api/v1/kos/createKo`;
                             let data = {
                                 type : "idea",
-                                title : res.text,
+                                title : "Idea",
                                 owner : store.get(message.user),
-                                details : "details of the idea"
+                                details : res.text
                             }
                             console.log(url);
                             axios.post(url,data)
@@ -91,9 +96,9 @@ module.exports = function(controller) {
                     let url = `${process.env.BACKEND_API_URL}/api/v1/kos/createKo`;
                             let data = {
                                 type : "idea",
-                                title : res.text,
+                                title : "Idea",
                                 owner : store.get(message.user),
-                                details : "details of the idea"
+                                details : res.text
                             }
                             console.log(url);
                             axios.post(url,data)
@@ -122,11 +127,10 @@ module.exports = function(controller) {
             axios.get(url)
                 .then ( response => {
                     let ideas = response.data;
-                    console.log(ideas);
                     bot.createConversation( message, function(err, convo) {
                         if(!ideas.length){
                             convo.say({
-                                text : "You don't have any ideas in your bind"
+                                text : "You don't have any ideas in your binder."
                             })
                         }
                         else {
@@ -136,7 +140,7 @@ module.exports = function(controller) {
                         }
                         ideas.forEach( idea => {
                             convo.say({
-                                text : `${idea.title}`
+                                text : `${idea.details}`
                             })
                         })
                         convo.activate();
@@ -304,11 +308,12 @@ module.exports = function(controller) {
                         text: 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?'
                 },function(res, convo) {
                     let url = `${process.env.BACKEND_API_URL}/api/v1/kos/createKo`;
+                    
                     let data = {
-                        type : "idea",
-                        title : res.text,
+                        type : "deepdive",
+                        title : "Idea",
                         owner : store.get(message.user),
-                        details : "details of the idea"
+                        details : "res.text"
                     }
                     console.log(url);
                     axios.post(url,data)

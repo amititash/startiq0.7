@@ -10,7 +10,14 @@ module.exports = function(controller) {
                 convo.ask({
                     text : "Hi ! I am the StartIQ bot. Kindly provide your e-mail id for registration purpose."
                 },function(res, convo){
-                    store.set(message.user, res.text);
+                    let email = res.text;
+                    try {
+                        email = email.slice(email.indexOf('|')+1).slice(0,-1);
+                    }
+                    catch(e) {
+                        console.log("Error in converting email", e);
+                    }
+                    store.set(message.user, email);
                     convo.say({
                         text : "Thanks!"
                     })
