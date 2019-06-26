@@ -147,9 +147,16 @@ module.exports = function(controller) {
                             })
                         }
                         ideas.forEach( idea => {
-                            convo.say({
-                                text : `${JSON.stringify(idea.details,null,2)}`
-                            })
+                            if(idea.details.length === 1) {
+                                convo.say({
+                                    text : `${idea.details[0].answer}`
+                                })
+                            }
+                            else {
+                                convo.say({
+                                    text : `${JSON.stringify(idea.details,null,2)}`
+                                })
+                            }
                         })
                         convo.activate();
                     })
