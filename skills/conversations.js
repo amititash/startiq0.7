@@ -46,7 +46,6 @@ module.exports = function(controller) {
         }
 
         if(message.text === "ideastorm"){
-            console.log("cool");
             bot.createConversation(message, function(err, convo) {
 
                 convo.addQuestion({
@@ -64,12 +63,17 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             console.log("default triggered");
-                            let url = `${process.env.BACKEND_API_URL}/api/v1/kos/createKo`;
+                            let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
                             let data = {
                                 type : "idea",
                                 title : "Idea",
                                 owner : store.get(message.user),
-                                details : res.text
+                                details : [
+                                    {
+                                        question : "What is your idea ?",
+                                        answer : res.text
+                                    }
+                                ]
                             }
                             console.log(url);
                             axios.post(url,data)
@@ -93,12 +97,17 @@ module.exports = function(controller) {
                     text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
                 },
                 function(res, convo) {
-                    let url = `${process.env.BACKEND_API_URL}/api/v1/kos/createKo`;
+                    let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
                             let data = {
                                 type : "idea",
                                 title : "Idea",
                                 owner : store.get(message.user),
-                                details : res.text
+                                details : [
+                                    {
+                                        question : "What is your idea ?",
+                                        answer : res.text
+                                    }
+                                ]
                             }
                             console.log(url);
                             axios.post(url,data)
@@ -122,8 +131,7 @@ module.exports = function(controller) {
 
 
         if(message.text === "list") {
-            console.log("cool");
-            let url = `${process.env.BACKEND_API_URL}/api/v1/kos/allKos?emailId=${store.get(message.user)}`;
+            let url = `${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`;
             axios.get(url)
                 .then ( response => {
                     let ideas = response.data;
@@ -140,7 +148,7 @@ module.exports = function(controller) {
                         }
                         ideas.forEach( idea => {
                             convo.say({
-                                text : `${idea.details}`
+                                text : `${JSON.stringify(idea.details,null,2)}`
                             })
                         })
                         convo.activate();
@@ -155,7 +163,30 @@ module.exports = function(controller) {
 
 
         if(message.text === 'deepdive') {
+            
+            let responses = [];
             bot.createConversation(message, function(err, convo) {
+
+                convo.beforeThread('save_responses_thread', function(convo, next) {
+                    console.log("saved responses");
+                    let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+                    let data = {
+                        type : "deepdive",
+                        title : "Idea",
+                        owner : store.get(message.user),
+                        details : responses
+                    }
+                    console.log(url);
+                    axios.post(url,data)
+                        .then( response => {
+                            console.log("data was saved successfully");
+                        })
+                        .catch( e => {
+                            console.log("some error occurred");
+                        })
+                    next();
+                })
+
 
                 convo.addMessage({
                     text : "{{vars.programs}}"
@@ -164,9 +195,25 @@ module.exports = function(controller) {
                 convo.addQuestion({
                     text : "Ok you chose {{vars.chosenProgram}}. What's the problem you are solving for them ?"
                 },
-                function(res, convo) {
-                    convo.next();
-                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }  
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            responses.push({
+                                question :  "What's the problem you are solving for them ?",
+                                answer : res.text
+                            })
+                            convo.next();
+                        }
+                    }
+                ],
                 {},
                 "chosen_programs_thread");
     
@@ -175,18 +222,23 @@ module.exports = function(controller) {
                 },
                 [
                     {
-                        pattern : ".*",
+                        pattern : bot.utterances.quit,
                         callback : function(res, convo) {
-                            console.log("inside handler");
+                            convo.gotoThread("save_responses_thread");
                             convo.next();
-                        }
+                        }  
                     },
                     {
                         default : true,
                         callback : function(res, convo) {
+                            responses.push({
+                                question :  "What is the most innovative aspect of your idea?",
+                                answer : res.text
+                            })
+                            console.log("inside handler");
                             convo.next();
                         }
-                    }
+                    },
                 ],
                 {},
                 "chosen_programs_thread");
@@ -201,29 +253,81 @@ module.exports = function(controller) {
     
                 convo.addQuestion({
                     text : "Are there any other companies that might be competitors?"
-                },function(res, convo) {
-                    convo.setVar("competitors",res.text);
-                    convo.next();
                 },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            responses.push({
+                                question : "Are there any other companies that might be competitors?",
+                                answer : res.text
+                            })
+                            convo.setVar("competitors",res.text);
+                            convo.next();
+                        }
+                    }
+                ]
+                ,
                 {},
                 "chosen_programs_thread");
     
                 convo.addQuestion({
                     text : "What about a substitute product ?",
-                },function(res, convo) {
-                    convo.setVar("substituteProduct",res.text);
-                    convo.next();
                 },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            responses.push({
+                                question : "What about a substitute product ?",
+                                answer : res.text
+                            })
+                            convo.setVar("substituteProduct",res.text);
+                            convo.next();
+                        }
+                    }
+                ],
                 {},
                 "chosen_programs_thread");
     
                 convo.addQuestion({
                     text : "How do you see your idea as better or more innovative than these companies?"
                 },
-                function(res, convo) {
-                    convo.setVar("howIdeaBetter",res.text);
-                    convo.next();
-                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            responses.push({
+                                question : "How do you see your idea as better or more innovative than these companies?",
+                                answer : res.text
+                            })
+                            convo.setVar("howIdeaBetter",res.text);
+                            convo.next();
+                        }
+                    }
+                ]
+                ,
                 {},
                 "chosen_programs_thread");
     
@@ -238,11 +342,27 @@ module.exports = function(controller) {
                 convo.addQuestion({
                     text : "Dora Datafox"
                 },
-                function(res, convo){
-                    console.log("inside this now");
-                    convo.setVar("analogousProduct",res.text);
-                    convo.next();
-                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo){
+                            responses.push({
+                                question : "Here are some analogous products but targeting different markets, are any of these relevant?. Dora Datafox",
+                                answer : res.text
+                            })
+                            console.log("inside this now");
+                            convo.setVar("analogousProduct",res.text);
+                            convo.next();
+                        }
+                    }
+                ],
                 {},          
                 "chosen_programs_thread");
     
@@ -253,10 +373,26 @@ module.exports = function(controller) {
                 convo.addQuestion({
                     text : "SaaS, Chatbots, Machine Learning"
                 },
-                function(res,convo) {
-                    convo.setVar("categories", res.text);
-                    convo.next();
-                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res,convo) {
+                            responses.push({
+                                question : "Based on the information you provided, it looks like your market segment includes the following categories. Check all that you think are relevant. SaaS, Chatbots, Machine Learning",
+                                answer : res.text
+                            })
+                            convo.setVar("categories", res.text);
+                            convo.next();
+                        }
+                    }
+                ],
                 {},
                 "chosen_programs_thread");
     
@@ -265,16 +401,32 @@ module.exports = function(controller) {
                 },"chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "DataFox raised funding from Slack"
+                    text : "DataFox raised funding from Slack",
+                    action : "save_responses_thread"
                 },"chosen_programs_thread");
+
+                convo.addMessage({
+                    text : "Thanks ! Your responses have been saved"
+                },"save_responses_thread");
     
                 convo.addQuestion({
                     text : "Are there other target customers that I’ve missed ?"
                 },
                 [
                     {
-                        pattern : ".*",
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
                         callback : function(res,convo){
+                            responses.push({
+                                question : "Are there other target customers that I’ve missed ?",
+                                answer : res.text
+                            })
                             convo.setVar("programs", res.text);
                             convo.say({
                                 text : "Noted"
@@ -294,8 +446,19 @@ module.exports = function(controller) {
                 },
                 [
                     {
-                        pattern : ".*",
+                        pattern : bot.utterances.quit,
                         callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            responses.push({
+                                question : "So who are your target customers ?",
+                                answer : res.text
+                            })
                             convo.setVar("chosenProgram", res.text);
                             convo.transitionTo("missed_target_customer_thread", `Great. ${res.text} are a great target segment`);
                             convo.next();
@@ -304,31 +467,35 @@ module.exports = function(controller) {
                 ],
                 {},
                 "response_thread");
+
+
+
                 convo.ask({
                         text: 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?'
-                },function(res, convo) {
-                    let url = `${process.env.BACKEND_API_URL}/api/v1/kos/createKo`;
-                    
-                    let data = {
-                        type : "deepdive",
-                        title : "Idea",
-                        owner : store.get(message.user),
-                        details : "res.text"
-                    }
-                    console.log(url);
-                    axios.post(url,data)
-                        .then( response => {
-                            console.log("data was saved successfully");
-                            convo.gotoThread("response_thread");
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
                             convo.next();
-                        })
-                        .catch( e => {
-                            console.log("some error occurred");
-                            convo.gotoThread("response_thread");
-                            convo.next(e);
-                        })
-                    
-                });
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            responses.push({
+                                question : 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?',
+                                answer : res.text
+                            })
+                            convo.gotoThread('response_thread');
+                            convo.next();
+                            
+                            
+                        }
+                    }
+                ]
+                );
                 convo.activate();
                 
             });
