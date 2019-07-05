@@ -149,12 +149,12 @@ module.exports = function(controller) {
                         ideas.forEach( idea => {
                             if(idea.details.length === 1) {
                                 convo.say({
-                                    text : `${idea.details[0].answer}`
+                                    text : `${idea.details[0].answer}\n***************************************************************`
                                 })
                             }
                             else {
                                 convo.say({
-                                    text : `${JSON.stringify(idea.details,null,2)}`
+                                    text : `${JSON.stringify(idea.details,null,2)}\n***************************************************************`
                                 })
                             }
                         })
@@ -238,6 +238,15 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            /************************ */
+                            
+                            //This callback is executed on any answer except a quitting answer like 'cancel', 'quit' etc.
+                            // This should be a suitable place to make async api calls.
+                            // res.text contains user's answer to the above question "What is the most innovative...?"
+                            // In general, we can make api calls after convo.ask or convo.addQuestion. 
+                            // Another place to make async calls is the before hook of a thread. 
+
+                            /************************ */
                             responses.push({
                                 question :  "What is the most innovative aspect of your idea?",
                                 answer : res.text
