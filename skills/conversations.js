@@ -2,7 +2,7 @@ const axios = require('axios');
 
 
 const store = require('../store/store');
-
+var request = require("request");
 
 /*
 
@@ -385,9 +385,10 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "Based on the information you provided, it looks like your market segment includes the following categories. Check all that you think are relevant."
                 },"chosen_programs_thread");
+                
     
                 convo.addQuestion({
-                    text : "SaaS, Chatbots, Machine Learning"
+                    text : "{{vars.startuptag}}"
                 },
                 [
                     {
@@ -504,9 +505,34 @@ module.exports = function(controller) {
                                 question : 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?',
                                 answer : res.text
                             })
+                            /**
+                             * 
+                             * sending the user input for tagging 
+                             */
+                            
+
+                            var options = { method: 'GET',
+                            url: 'http://localhost:4000/getnex/'+res.text,
+                            headers: 
+                            { 
+                                'cache-control': 'no-cache',
+                                accept: 'application/json',
+                                'content-type': 'application/json' } };
+
+                            request(options, function (error, response, body) {
+                            if (error) throw new Error(error);
+
+                            var result = JSON.parse(body);
+
+                            console.log(result.data);
+
+                            convo.setVar("startuptag",result.data.koTags);
                             convo.gotoThread('response_thread');
                             convo.next();
                             
+                            console.log(body);
+                            });
+
                             
                         }
                     }
