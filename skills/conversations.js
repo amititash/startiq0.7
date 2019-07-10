@@ -512,7 +512,7 @@ module.exports = function(controller) {
                             
 
                             var options = { method: 'GET',
-                            url: 'http://localhost:4000/getnex/'+res.text,
+                            url: `http://localhost:5000/predict?idea=${res.text}`,
                             headers: 
                             { 
                                 'cache-control': 'no-cache',
@@ -520,17 +520,22 @@ module.exports = function(controller) {
                                 'content-type': 'application/json' } };
 
                             request(options, function (error, response, body) {
-                            if (error) throw new Error(error);
+                            if (error) {
+                                console.log(error);
+                                convo.say({
+                                    text : "Some error occurred in processing the idea."
+                                })
+                                convo.gotoThread('response_thread');
+                                convo.next();
+                            }
+                            else {
+                                var result = JSON.parse(body);
+                                // console.log(result.data);
+                                convo.setVar("startuptag",result["PRED"][0]["topic"]);
+                                convo.gotoThread('response_thread');
+                                convo.next();
+                            }
 
-                            var result = JSON.parse(body);
-
-                            console.log(result.data);
-
-                            convo.setVar("startuptag",result.data.koTags);
-                            convo.gotoThread('response_thread');
-                            convo.next();
-                            
-                            console.log(body);
                             });
 
                             
