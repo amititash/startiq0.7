@@ -3,8 +3,7 @@ const axios = require('axios');
 
 const store = require('../store/store');
 var request = require("request");
-const fs = require('fs');
-
+const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
 const all_reply_set = [];
 
 
@@ -227,6 +226,11 @@ module.exports = function(controller) {
                 })
 
 
+
+                convo.addMessage({
+                    text : "Thanks ! Your responses have been saved"
+                },"save_responses_thread");
+
                 convo.addMessage({
                     text : "{{vars.programs}}"
                 },"chosen_programs_thread");
@@ -257,7 +261,7 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addQuestion({
-                    text : "What is the most innovative aspect of your idea?"
+                    text : `${deepdive_replies["most_innovative_aspect"]["question"]}`
                 },
                 [
                     {
@@ -283,7 +287,6 @@ module.exports = function(controller) {
                                 question :  "What is the most innovative aspect of your idea?",
                                 answer : res.text
                             })
-                            console.log("inside handler");
                             convo.next();
                         }
                     },
@@ -292,15 +295,15 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "It looks like there are several companies that develop software for entrepreneurs. Here are a few that I found with links to their website and a short description. Do any of these seem like competitors? If so, click on them to add them to your idea."
+                    text : `${deepdive_replies["similar_companies_exist"]["question"]}`
                 },"chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "Startup.co, Techcrunch, Concept Feedback"
+                    text : `${deepdive_replies["similar_companies_found"]["question"]}`
                 },"chosen_programs_thread");
     
                 convo.addQuestion({
-                    text : "Are there any other companies that might be competitors?"
+                    text : `${deepdive_replies["any_other_competitors"]["question"]}`
                 },
                 [
                     {
@@ -327,7 +330,7 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addQuestion({
-                    text : "What about a substitute product ?",
+                    text : `${deepdive_replies["substitute_products"]["question"]}`
                 },
                 [
                     {
@@ -353,7 +356,7 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addQuestion({
-                    text : "How do you see your idea as better or more innovative than these companies?"
+                    text : `${deepdive_replies["how_idea_better"]["question"]}`
                 },
                 [
                     {
@@ -380,15 +383,15 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "Great, let me see if I can dig a bit deeper into the idea."
+                    text : `${deepdive_replies["dig_deeper_into_idea"]["question"]}`
                 },"chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "Here are some analogous products but targeting different markets, are any of these relevant?"
+                    text : `${deepdive_replies["analogous_products"]["question"]}`
                 },"chosen_programs_thread");
     
                 convo.addQuestion({
-                    text : "Dora Datafox"
+                    text : `${deepdive_replies["analogous_products_response"]["question"]}`
                 },
                 [
                     {
@@ -405,7 +408,6 @@ module.exports = function(controller) {
                                 question : "Here are some analogous products but targeting different markets, are any of these relevant?. Dora Datafox",
                                 answer : res.text
                             })
-                            console.log("inside this now");
                             convo.setVar("analogousProduct",res.text);
                             convo.next();
                         }
@@ -415,7 +417,7 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "Based on the information you provided, it looks like your market segment includes the following categories. Check all that you think are relevant."
+                    text : `${deepdive_replies["market_segment_categories"]["question"]}`
                 },"chosen_programs_thread");
                 
     
@@ -446,20 +448,18 @@ module.exports = function(controller) {
                 "chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "Based on financing data, this market has seen some financing activity. Startups in this space that have recently raised funding include:"
+                    text : `${deepdive_replies["financing_activity"]["question"]}`
                 },"chosen_programs_thread");
     
                 convo.addMessage({
-                    text : "DataFox raised funding from Slack",
+                    text : `${deepdive_replies["recently_funded_startups"]["question"]}`,
                     action : "save_responses_thread"
                 },"chosen_programs_thread");
 
-                convo.addMessage({
-                    text : "Thanks ! Your responses have been saved"
-                },"save_responses_thread");
+                
     
                 convo.addQuestion({
-                    text : "Are there other target customers that I’ve missed ?"
+                    text : `${deepdive_replies["missed_target_customers"]["question"]}`
                 },
                 [
                     {
@@ -481,7 +481,7 @@ module.exports = function(controller) {
                                 text : "Noted"
                             })
                             convo.say({
-                                text : "Let's pick the most important segment and see if we can dig a bit deeper into the problem you are solving for them.",
+                                text : `${deepdive_replies["pick_most_important_segment"]["question"]}`,
                                 action : "chosen_programs_thread"
                             })
                             convo.next();
@@ -490,8 +490,11 @@ module.exports = function(controller) {
                 ],
                 {},
                 "missed_target_customer_thread");
+
+
+
                 convo.addQuestion({
-                    text : "So who are your target customers ?"
+                    text : `${deepdive_replies["who_are_target_customers"]["question"]}`
                 },
                 [
                     {
@@ -520,7 +523,7 @@ module.exports = function(controller) {
 
 
                 convo.ask({
-                        text: 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?'
+                        text: `${deepdive_replies["what_is_the_idea"]["question"]}`
                 },
                 [
                     {
