@@ -3,6 +3,23 @@ const axios = require('axios');
 
 const store = require('../store/store');
 var request = require("request");
+const fs = require('fs');
+
+const all_reply_set = [];
+
+
+/**
+ * all_reply_set is 2-d array.
+ * Each array of all_reply_set is set of responses and is intended for a single user. 
+ */
+for(let i = 1;i<3;i++) {
+    all_reply_set.push(require(`../assets/ideastorm_replies${i}`))
+}
+
+console.log(all_reply_set);
+
+//Randomly choose one set(array) of responses.
+const ideastorm_replies = all_reply_set[Math.floor(Math.random()*2)]; 
 
 /*
 
@@ -16,6 +33,7 @@ through the conversation are chosen based on the user's response.
 */
 
 module.exports = function(controller) {
+
 
     
 
@@ -48,8 +66,14 @@ module.exports = function(controller) {
         if(message.text === "ideastorm"){
             bot.createConversation(message, function(err, convo) {
 
+
+                //Here, we are randomly choosing a particular response from the chosen set of response.
+                convo.setVar("ideastorm_reply", ideastorm_replies[Math.floor(Math.random()*3)]["statement"])
+
+
                 convo.addQuestion({
-                    text : "Ok, next. (say 'cancel' when you want to stop)"
+                    // text : "Ok, next. (say 'cancel' when you want to stop)"
+                    text : "{{vars.ideastorm_reply}}"
                 },
                 [
                     {
@@ -80,11 +104,19 @@ module.exports = function(controller) {
                                 .then( response => {
                                     console.log("data was saved successfully");
                                     convo.gotoThread("idea_input_thread");
+
+                                    //Here, we are randomly choosing a particular response from the chosen set of response.
+                                    convo.setVar("ideastorm_reply", ideastorm_replies[Math.floor(Math.random()*3)]["statement"])
+
                                     convo.next();
                                 })
                                 .catch( e => {
                                     console.log("some error occurred");
                                     convo.gotoThread("idea_input_thread");
+
+                                    //Here, we are randomly choosing a particular response from the chosen set of response.
+                                    convo.setVar("ideastorm_reply", ideastorm_replies[Math.floor(Math.random()*3)]["statement"])
+                                    
                                     convo.next(e);
                                 })
                         }
