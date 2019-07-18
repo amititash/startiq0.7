@@ -4,21 +4,21 @@ const axios = require('axios');
 const store = require('../store/store');
 var request = require("request");
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
-const all_reply_set = [];
+const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*3)+1}`)
 
 
 /**
- * all_reply_set is 2-d array.
- * Each array of all_reply_set is set of responses and is intended for a single user. 
+ * ideastorm_reply_set is 2-d array.
+ * Each array of ideastorm_reply_set is set of responses and is intended for a single user. 
  */
-for(let i = 1;i<3;i++) {
-    all_reply_set.push(require(`../assets/ideastorm_replies${i}`))
-}
+// for(let i = 1;i<3;i++) {
+//     ideastorm_reply_set.push(require(`../assets/ideastorm_replies${i}`))
+// }
 
-console.log(all_reply_set);
+// console.log(ideastorm_reply_set);
 
 //Randomly choose one set(array) of responses.
-const ideastorm_replies = all_reply_set[Math.floor(Math.random()*2)]; 
+// const ideastorm_replies = ideastorm_reply_set[Math.floor(Math.random()*2)]; 
 
 /*
 
@@ -56,108 +56,162 @@ module.exports = function(controller) {
     });
 
 
-    controller.on('direct_message,direct_mention', function(bot, message) {
+    controller.on('direct_message,direct_mention', async function(bot, message) {
         if(!store.get(message.user)){
             console.log("user not found");
             return ;
         }
 
         if(message.text === "ideastorm"){
-            bot.createConversation(message, function(err, convo) {
 
+            
+            if(ideastorm_replies.flag === "one_by_one") {
 
-                //Here, we are randomly choosing a particular response from the chosen set of response.
-                convo.setVar("ideastorm_reply", ideastorm_replies[Math.floor(Math.random()*3)]["statement"])
+                
+                bot.createConversation(message, function(err, convo) {
 
-
-                convo.addQuestion({
-                    // text : "Ok, next. (say 'cancel' when you want to stop)"
-                    text : "{{vars.ideastorm_reply}}"
-                },
-                [
-                    {
-                        pattern : "cancel",
-                        callback : function(res, convo) {
-                            convo.stop();
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            console.log("default triggered");
-                            let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                            let data = {
-                                type : "idea",
-                                title : "Idea",
-                                owner : store.get(message.user),
-                                details : [
-                                    {
-                                        question : "What is your idea ?",
-                                        answer : res.text
-                                    }
-                                ]
-                            }
-                            console.log(url);
-                            axios.post(url,data)
-                                .then( response => {
-                                    console.log("data was saved successfully");
-                                    convo.gotoThread("idea_input_thread");
-
-                                    //Here, we are randomly choosing a particular response from the chosen set of response.
-                                    convo.setVar("ideastorm_reply", ideastorm_replies[Math.floor(Math.random()*3)]["statement"])
-
-                                    convo.next();
-                                })
-                                .catch( e => {
-                                    console.log("some error occurred");
-                                    convo.gotoThread("idea_input_thread");
-
-                                    //Here, we are randomly choosing a particular response from the chosen set of response.
-                                    convo.setVar("ideastorm_reply", ideastorm_replies[Math.floor(Math.random()*3)]["statement"])
-                                    
-                                    convo.next(e);
-                                })
-                        }
-                    }
-                ],
-                {},
-                "idea_input_thread");
     
-                convo.ask({
-                    text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
-                },
-                function(res, convo) {
-                    let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                            let data = {
-                                type : "idea",
-                                title : "Idea",
-                                owner : store.get(message.user),
-                                details : [
-                                    {
-                                        question : "What is your idea ?",
-                                        answer : res.text
-                                    }
-                                ]
+
+                    //Here, we are randomly choosing a particular response from the chosen set of response.
+                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
+    
+    
+                    convo.addQuestion({
+                        // text : "Ok, next. (say 'cancel' when you want to stop)"
+                        text : "{{vars.ideastorm_reply}}"
+                    },
+                    [
+                        {
+                            pattern : "cancel",
+                            callback : function(res, convo) {
+                                convo.stop();
+                                convo.next();
                             }
-                            console.log(url);
-                            axios.post(url,data)
-                                .then( response => {
-                                    console.log("data was saved successfully");
-                                    convo.gotoThread("idea_input_thread");
-                                    convo.next();
-                                })
-                                .catch( e => {
-                                    console.log("some error occurred");
-                                    convo.gotoThread("idea_input_thread");
-                                    convo.next(e);
-                                })
+                        },
+                        {
+                            default : true,
+                            callback : function(res, convo) {
+                                console.log("default triggered");
+                                let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+                                let data = {
+                                    type : "idea",
+                                    title : "Idea",
+                                    owner : store.get(message.user),
+                                    details : [
+                                        {
+                                            question : "What is your idea ?",
+                                            answer : res.text
+                                        }
+                                    ]
+                                }
+                                console.log(url);
+                                axios.post(url,data)
+                                    .then( response => {
+                                        console.log("data was saved successfully");
+                                        convo.gotoThread("idea_input_thread");
+    
+                                        //Here, we are randomly choosing a particular response from the chosen set of response.
+                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
+    
+                                        convo.next();
+                                    })
+                                    .catch( e => {
+                                        console.log("some error occurred");
+                                        convo.gotoThread("idea_input_thread");
+    
+                                        //Here, we are randomly choosing a particular response from the chosen set of response.
+                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
+                                        
+                                        convo.next(e);
+                                    })
+                            }
+                        }
+                    ],
+                    {},
+                    "idea_input_thread");
+        
+                    convo.ask({
+                        text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
+                    },
+                    function(res, convo) {
+                        let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+                                let data = {
+                                    type : "idea",
+                                    title : "Idea",
+                                    owner : store.get(message.user),
+                                    details : [
+                                        {
+                                            question : "What is your idea ?",
+                                            answer : res.text
+                                        }
+                                    ]
+                                }
+                                console.log(url);
+                                axios.post(url,data)
+                                    .then( response => {
+                                        console.log("data was saved successfully");
+                                        convo.gotoThread("idea_input_thread");
+                                        convo.next();
+                                    })
+                                    .catch( e => {
+                                        console.log("some error occurred");
+                                        convo.gotoThread("idea_input_thread");
+                                        convo.next(e);
+                                    })
+                        
+                    });
+        
+                    convo.activate();
                     
                 });
-    
-                convo.activate();
-                
-            });
+            }
+            
+            if(ideastorm_replies.flag === "five_ideas_at_once") {
+                let ideas = [];
+                bot.createConversation(message, function(error, convo) {
+                    convo.addQuestion({
+                        text : "Please enter any 5 ideas that you want to record one by one."
+                    },
+                    function(res, convo) {
+                        ideas.push(res.text);
+                        convo.next();
+                        convo.addQuestion({
+                            text : ""
+                        }, 
+                        function(res, convo) {
+                            ideas.push(res.text);
+                            convo.next();
+                            convo.addQuestion({
+                                text : ""
+                            },
+                            function(res, convo) {
+                                ideas.push(res.text);
+                                convo.next();
+                                convo.addQuestion({
+                                    text : ""
+                                },
+                                function(res, convo) {
+                                    ideas.push(res.text);
+                                    convo.next();
+                                    convo.addQuestion({
+                                        text : ""
+                                    },
+                                    function(res,convo){
+                                        ideas.push(res.text);
+                                        console.log("Ideas to store: ", ideas);
+                                        convo.say({
+                                            text : "Thanks ! Your ideas have been saved."
+                                        })
+                                        convo.next();
+                                    })
+                                })
+                            })
+                        })
+                    })
+                    convo.activate();
+                })
+            }
+            
         }
 
 
@@ -201,7 +255,24 @@ module.exports = function(controller) {
 
 
         if(message.text === 'deepdive') {
-            
+            // What if deepdive cancelled on very first step so that no idea itself ?
+            let existingIdeas = [];
+            let existingIdeasIndex = 1;
+            let ideaMap = {};
+            try {
+                let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
+                existingIdeas = ideas.data;
+            }
+            catch(error) {
+                console.log(error);
+            }
+            let existingIdeasString = "";
+            existingIdeas.forEach( (idea) => {
+                if(idea.details.length) {
+                    ideaMap[`${existingIdeasIndex}`] = idea["details"][0]["answer"];
+                    existingIdeasString += `${existingIdeasIndex++}. ${idea["details"].length > 0 ? idea["details"][0]["answer"] : ""}\n` 
+                }
+            })
             let responses = [];
             bot.createConversation(message, function(err, convo) {
 
@@ -520,10 +591,28 @@ module.exports = function(controller) {
                 {},
                 "response_thread");
 
+                
 
+                if(existingIdeas.length > 0) {
+                    convo.addQuestion({
+                        text : `You have following ideas in your binder. Choose the number corresponding to the idea you want to work upon.\n${existingIdeasString}\n${existingIdeasIndex}. I want to work on a new idea.`
+                    },
+                    function(res, convo) {
+                        let chosenIdeaIndex = res.text;
+                        //existingIdeaIndex is equal to the last number, i.e it corresponds to working on a new idea.
+                        if(chosenIdeaIndex !== existingIdeasIndex) { 
+                            //user choses to work on pre-existing idea.
+                            convo.transitionTo("response_thread",`You chose to work on this idea : ${ideaMap[chosenIdeaIndex]}`);
+                        }
+                        convo.next();
+                    },
+                    {},
+                    "default")
+                }
+            
 
-                convo.ask({
-                        text: `${deepdive_replies["what_is_the_idea"]["question"]}`
+                convo.addQuestion({
+                    text: `${deepdive_replies["what_is_the_idea"]["question"]}`
                 },
                 [
                     {
@@ -576,7 +665,9 @@ module.exports = function(controller) {
                             
                         }
                     }
-                ]
+                ],
+                {},
+                "default"
                 );
                 convo.activate();
                 
