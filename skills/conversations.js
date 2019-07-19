@@ -4,7 +4,7 @@ const axios = require('axios');
 const store = require('../store/store');
 var request = require("request");
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
-const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*3)+1}`)
+const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+1}`)
 
 
 /**
@@ -88,21 +88,16 @@ module.exports = function(controller) {
                                 convo.next();
                             }
                         },
+                        // !!!!!!!!!!!!!!!!! optimize . 2 ways : bulk insert, rabbitmq . 
                         {
                             default : true,
                             callback : function(res, convo) {
                                 console.log("default triggered");
                                 let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
                                 let data = {
-                                    type : "idea",
-                                    title : "Idea",
-                                    owner : store.get(message.user),
-                                    details : [
-                                        {
-                                            question : "What is your idea ?",
-                                            answer : res.text
-                                        }
-                                    ]
+                                    ideaOwner : store.get(message.user),
+                                    ideaDescription : res.text,
+                                    ideaName : res.text.slice(0,200)
                                 }
                                 console.log(url);
                                 axios.post(url,data)
@@ -135,83 +130,86 @@ module.exports = function(controller) {
                     },
                     function(res, convo) {
                         let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                                let data = {
-                                    type : "idea",
-                                    title : "Idea",
-                                    owner : store.get(message.user),
-                                    details : [
-                                        {
-                                            question : "What is your idea ?",
-                                            answer : res.text
-                                        }
-                                    ]
-                                }
-                                console.log(url);
-                                axios.post(url,data)
-                                    .then( response => {
-                                        console.log("data was saved successfully");
-                                        convo.gotoThread("idea_input_thread");
-                                        convo.next();
-                                    })
-                                    .catch( e => {
-                                        console.log("some error occurred");
-                                        convo.gotoThread("idea_input_thread");
-                                        convo.next(e);
-                                    })
-                        
+                        let data = {
+                            ideaOwner : store.get(message.user),
+                            ideaDescription : res.text,
+                            ideaName : res.text.slice(0,200),
+                        }
+                        console.log(url);
+                        axios.post(url,data)
+                            .then( response => {
+                                console.log("data was saved successfully");
+                                convo.gotoThread("idea_input_thread");
+                                convo.next();
+                            })
+                            .catch( e => {
+                                console.log("some error occurred");
+                                convo.gotoThread("idea_input_thread");
+                                convo.next(e);
+                            })
                     });
-        
                     convo.activate();
-                    
                 });
             }
             
             if(ideastorm_replies.flag === "five_ideas_at_once") {
                 let ideas = [];
+                let count = 5;
                 bot.createConversation(message, function(error, convo) {
+
+                    convo.addMessage({
+                        text : "Please enter any 5 ideas that you want to record one by one.",
+                        action : "idea_store_thread"
+                    })
+
                     convo.addQuestion({
-                        text : "Please enter any 5 ideas that you want to record one by one."
+                        text : "",
                     },
                     function(res, convo) {
                         ideas.push(res.text);
+                        count--;
+
+                        if(count === 0) {
+                            convo.gotoThread("save_responses_thread");
+                        }
+                        else {
+                            convo.transitionTo("idea_store_thread","Okay, enter next one.");
+                        }
                         convo.next();
-                        convo.addQuestion({
-                            text : ""
-                        }, 
-                        function(res, convo) {
-                            ideas.push(res.text);
-                            convo.next();
-                            convo.addQuestion({
-                                text : ""
-                            },
-                            function(res, convo) {
-                                ideas.push(res.text);
-                                convo.next();
-                                convo.addQuestion({
-                                    text : ""
-                                },
-                                function(res, convo) {
-                                    ideas.push(res.text);
-                                    convo.next();
-                                    convo.addQuestion({
-                                        text : ""
-                                    },
-                                    function(res,convo){
-                                        ideas.push(res.text);
-                                        console.log("Ideas to store: ", ideas);
-                                        convo.say({
-                                            text : "Thanks ! Your ideas have been saved."
-                                        })
-                                        convo.next();
-                                    })
+                    },
+                    {},
+                    "idea_store_thread");
+
+
+
+                    convo.addMessage({
+                        text : "Your responses have been saved."
+                    },"save_responses_thread")
+
+
+
+                    convo.beforeThread("save_responses_thread", function(convo,next) {
+                        ideas.forEach( idea => {
+                            let data = {
+                                ideaOwner : store.get(message.user),
+                                ideaDescription : idea,
+                                ideaName : idea.slice(0,200)
+                            }
+                            let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+                            
+                            axios.post(url, data)
+                                .then ( response => {
+                                    console.log("Ideas saved successfully", response.data);      
                                 })
-                            })
+                                .catch ( error => {
+                                    console.log("Some error occurred in storing ideas", error);
+                                })
                         })
+                        next();
                     })
                     convo.activate();
                 })
             }
-            
         }
 
 
@@ -220,6 +218,7 @@ module.exports = function(controller) {
             axios.get(url)
                 .then ( response => {
                     let ideas = response.data;
+                    console.log(ideas);
                     bot.createConversation( message, function(err, convo) {
                         if(!ideas.length){
                             convo.say({
@@ -230,19 +229,12 @@ module.exports = function(controller) {
                             convo.say({
                                 text : 'Following are the ideas in your binder.'
                             })
+                            ideas.forEach( idea => {
+                                convo.say({
+                                    text : idea.ideaName
+                                })
+                            })
                         }
-                        ideas.forEach( idea => {
-                            if(idea.details.length === 1) {
-                                convo.say({
-                                    text : `${idea.details[0].answer}\n***************************************************************`
-                                })
-                            }
-                            else {
-                                convo.say({
-                                    text : `${JSON.stringify(idea.details,null,2)}\n***************************************************************`
-                                })
-                            }
-                        })
                         convo.activate();
                     })
                 })
@@ -250,7 +242,6 @@ module.exports = function(controller) {
                     bot.reply(message, "Some error occurred");
                     console.log(e);
                 })
-            
         }
 
 
@@ -267,31 +258,29 @@ module.exports = function(controller) {
                 console.log(error);
             }
             let existingIdeasString = "";
-            existingIdeas.forEach( (idea) => {
-                if(idea.details.length) {
-                    ideaMap[`${existingIdeasIndex}`] = idea["details"][0]["answer"];
-                    existingIdeasString += `${existingIdeasIndex++}. ${idea["details"].length > 0 ? idea["details"][0]["answer"] : ""}\n` 
-                }
-            })
-            let responses = [];
+            if(existingIdeas.length > 0) {
+                existingIdeas.forEach( (idea) => {
+                    ideaMap[`${existingIdeasIndex}`] = idea.ideaName;
+                    existingIdeasString += `${existingIdeasIndex++}. ${idea.ideaName}\n` 
+                })
+            }
+            let ideaObj = {};
             bot.createConversation(message, function(err, convo) {
 
                 convo.beforeThread('save_responses_thread', function(convo, next) {
-                    console.log("saved responses");
                     let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                    let data = {
-                        type : "deepdive",
-                        title : "Idea",
-                        owner : store.get(message.user),
-                        details : responses
-                    }
+                    let data = ideaObj;
+                    ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
+                    ideaObj.ideaOwner = store.get(message.user);
+                    console.log("data to save", data);
                     console.log(url);
                     axios.post(url,data)
                         .then( response => {
+                            console.log(response.data);
                             console.log("data was saved successfully");
                         })
                         .catch( e => {
-                            console.log("some error occurred");
+                            console.log("some error occurred",e);
                         })
                     next();
                 })
@@ -320,10 +309,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            responses.push({
-                                question :  "What's the problem you are solving for them ?",
-                                answer : res.text
-                            })
+                            let problems_solved = [res.text];
+                            ideaObj.problems_solved = problems_solved;
                             convo.next();
                         }
                     }
@@ -354,10 +341,8 @@ module.exports = function(controller) {
                             // Another place to make async calls is the before hook of a thread. 
 
                             /************************ */
-                            responses.push({
-                                question :  "What is the most innovative aspect of your idea?",
-                                answer : res.text
-                            })
+                            let most_innovative_aspect = res.text;
+                            ideaObj.newCapabilities = [most_innovative_aspect];
                             convo.next();
                         }
                     },
@@ -387,10 +372,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            responses.push({
-                                question : "Are there any other companies that might be competitors?",
-                                answer : res.text
-                            })
+                            let competitors = res.text;
+                            ideaObj.competitors = [competitors];
                             convo.setVar("competitors",res.text);
                             convo.next();
                         }
@@ -414,10 +397,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            responses.push({
-                                question : "What about a substitute product ?",
-                                answer : res.text
-                            })
+                            let substitute_products = res.text;
+                            ideaObj.substitute_products = [substitute_products];
                             convo.setVar("substituteProduct",res.text);
                             convo.next();
                         }
@@ -440,10 +421,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            responses.push({
-                                question : "How do you see your idea as better or more innovative than these companies?",
-                                answer : res.text
-                            })
+                            let competitiveDifferentiation = res.text;
+                            ideaObj.competitiveDifferentiation = [competitiveDifferentiation]
                             convo.setVar("howIdeaBetter",res.text);
                             convo.next();
                         }
@@ -543,10 +522,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res,convo){
-                            responses.push({
-                                question : "Are there other target customers that I’ve missed ?",
-                                answer : res.text
-                            })
+                            let missed_target_customers = res.text;
+                            ideaObj.missed_target_customers = missed_target_customers;
                             convo.setVar("programs", res.text);
                             convo.say({
                                 text : "Noted"
@@ -578,10 +555,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            responses.push({
-                                question : "So who are your target customers ?",
-                                answer : res.text
-                            })
+                            let targetCustomers = res.text;
+                            ideaObj.targetCustomers = [targetCustomers];
                             convo.setVar("chosenProgram", res.text);
                             convo.transitionTo("missed_target_customer_thread", `Great. ${res.text} are a great target segment`);
                             convo.next();
@@ -600,7 +575,7 @@ module.exports = function(controller) {
                     function(res, convo) {
                         let chosenIdeaIndex = res.text;
                         //existingIdeaIndex is equal to the last number, i.e it corresponds to working on a new idea.
-                        if(chosenIdeaIndex !== existingIdeasIndex) { 
+                        if(chosenIdeaIndex != existingIdeasIndex) { 
                             //user choses to work on pre-existing idea.
                             convo.transitionTo("response_thread",`You chose to work on this idea : ${ideaMap[chosenIdeaIndex]}`);
                         }
@@ -625,44 +600,42 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            responses.push({
-                                question : 'I’m here to help you develop your startup idea. What are you trying to build and for whom ?',
-                                answer : res.text
-                            })
+                            
+                            ideaObj.ideaDescription = res.text;
                             /**
                              * 
                              * sending the user input for tagging 
                              */
                             
 
-                            var options = { method: 'GET',
-                            url: `http://localhost:5000/predict?idea=${res.text}`,
-                            headers: 
-                            { 
-                                'cache-control': 'no-cache',
-                                accept: 'application/json',
-                                'content-type': 'application/json' } };
+                            // var options = { method: 'GET',
+                            // url: `http://localhost:5000/predict?idea=${res.text}`,
+                            // headers: 
+                            // { 
+                            //     'cache-control': 'no-cache',
+                            //     accept: 'application/json',
+                            //     'content-type': 'application/json' } };
 
-                            request(options, function (error, response, body) {
-                            if (error) {
-                                console.log(error);
-                                convo.say({
-                                    text : "Some error occurred in processing the idea."
-                                })
-                                convo.gotoThread('response_thread');
-                                convo.next();
-                            }
-                            else {
-                                var result = JSON.parse(body);
-                                // console.log(result.data);
-                                convo.setVar("startuptag",result["PRED"][0]["topic"]);
-                                convo.gotoThread('response_thread');
-                                convo.next();
-                            }
+                            // request(options, function (error, response, body) {
+                            // if (error) {
+                            //     console.log(error);
+                            //     convo.say({
+                            //         text : "Some error occurred in processing the idea."
+                            //     })
+                            //     convo.gotoThread('response_thread');
+                            //     convo.next();
+                            // }
+                            // else {
+                            //     var result = JSON.parse(body);
+                            //     // console.log(result.data);
+                            //     convo.setVar("startuptag",result["PRED"][0]["topic"]);
+                            //     convo.gotoThread('response_thread');
+                            //     convo.next();
+                            // }
 
-                            });
-
-                            
+                            // });
+                            convo.gotoThread("response_thread");
+                            convo.next();
                         }
                     }
                 ],
