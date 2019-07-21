@@ -92,7 +92,6 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : function(res, convo) {
-                                console.log("default triggered");
                                 let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
                                 let data = {
                                     ideaOwner : store.get(message.user),
@@ -218,7 +217,6 @@ module.exports = function(controller) {
             axios.get(url)
                 .then ( response => {
                     let ideas = response.data;
-                    console.log(ideas);
                     bot.createConversation( message, function(err, convo) {
                         if(!ideas.length){
                             convo.say({
@@ -273,7 +271,6 @@ module.exports = function(controller) {
                     ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
                     ideaObj.ideaOwner = store.get(message.user);
                     console.log("data to save", data);
-                    console.log(url);
                     axios.post(url,data)
                         .then( response => {
                             console.log(response.data);
@@ -577,6 +574,7 @@ module.exports = function(controller) {
                         //existingIdeaIndex is equal to the last number, i.e it corresponds to working on a new idea.
                         if(chosenIdeaIndex != existingIdeasIndex) { 
                             //user choses to work on pre-existing idea.
+                            ideaObj.ideaDescription = existingIdeas[chosenIdeaIndex-1].ideaDescription;
                             convo.transitionTo("response_thread",`You chose to work on this idea : ${ideaMap[chosenIdeaIndex]}`);
                         }
                         convo.next();
