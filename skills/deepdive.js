@@ -15,18 +15,29 @@ through the conversation are chosen based on the user's response.
 
 module.exports = function(controller) {
 
+    let customer_segment = "";
 
-    controller.on('direct_message,direct_mention', async function(bot, message) {
+    controller.middleware.receive.use(function( bot, message, next) {
+        if(message.type === "interactive_message_callback") {
+            customer_segment = message.text;
+            message.customer_segment = customer_segment;
+        }
+        next();
+    })
+
+    controller.on('direct_message,direct_mention, interactive_message_callback', async function(bot, message) {
         if(!store.get(message.user)){
             console.log("user not found");
             return ;
         }
 
         if(message.text === 'deepdive') {
+   
             // What if deepdive cancelled on very first step so that no idea itself ?
             let existingIdeas = [];
             let existingIdeasIndex = 1;
             let ideaMap = {};
+            let attachment = [];
             try {
                 let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
                 existingIdeas = ideas.data;
@@ -72,9 +83,10 @@ module.exports = function(controller) {
                     text : "Thanks ! Your responses have been saved"
                 },"save_responses_thread");
 
+           
 
                 convo.addQuestion({
-                    text : "Ok you chose {{vars.chosen_customer_segment}}. What's the problem you are solving for them ?"
+                    text : "What's the problem you are solving for them ?"
                 },
                 [
                     {
@@ -277,8 +289,53 @@ module.exports = function(controller) {
                     action : "save_responses_thread"
                 },"chosen_customer_segment_thread");
 
+
+                convo.beforeThread("choose_customer_segment_thread", function(convo, next){
+                    let targetCustomers = ideaObj.targetCustomers;
+                    let dropDownMenu = {
+                        text : "Choose target customer from the following list.",
+                        fallback : "fallback text",
+                        color : "#3AA3E3",
+                        attachment_type : "default",
+                        callback_id : "target_customer_selection",
+                        actions : [
+                            {
+                                "name" : "customers_list",
+                                "text" : "Pick a target customer",
+                                "type" : "select",
+                                "options" : []
+                            }
+                        ]
+                    };
+                    targetCustomers.forEach( targetCustomer => {
+                        dropDownMenu.actions[0].options.push({
+                            text : `${targetCustomer}`,
+                            value : `${targetCustomer}`
+                        })
+                    });
+                    attachment.push(dropDownMenu);
+                    next();     
+                })
+
                 convo.addQuestion({
-                    text : `${deepdive_replies["missed_target_customers"]["question"]}`
+                    "text" : "Would you like to play a game ?",
+                    "response_type": "in_channel",
+                    attachments : attachment,
+                },
+                [
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            convo.transitionTo("chosen_customer_segment_thread",`Okay. You chose ${customer_segment}.`);
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "choose_customer_segment_thread");
+
+                convo.addQuestion({
+                    text : `Please enter comma separated list of target customers.`
                 },
                 [
                     {
@@ -291,29 +348,32 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res,convo){
-                            let missed_target_customers = res.text;
-                            ideaObj.missed_target_customers = missed_target_customers;
-                            convo.setVar("programs", res.text);
+                            let missed_target_customers = [];
+                            try {
+                                missed_target_customers = res.text.split(',');
+                                ideaObj.targetCustomers = ideaObj.targetCustomers.concat(missed_target_customers);
+                                console.log(ideaObj.targetCustomers);
+                            }
+                            catch(e) {
+                                console.log(e);
+                                convo.repeat();
+                            }
                             convo.say({
                                 text : "Noted"
                             })
                             convo.next();
-                            convo.ask({
-                                text : `${deepdive_replies["pick_most_important_segment"]["question"]}`,
-                            },function(res, convo) {
-                                convo.setVar("chosen_customer_segment", res.text);
-                                convo.gotoThread("chosen_customer_segment_thread");
-                                convo.next();
-                            })
+                            convo.gotoThread("choose_customer_segment_thread");
                             convo.next();
                         }
                     }
                 ],
                 {},
-                "missed_target_customer_thread");
+                "missed_customer_segment_thread");
 
 
                 convo.addQuestion({
+
+                    //First question asking the user for target customers.
                     text : `${deepdive_replies["who_are_target_customers"]["question"]}`
                 },
                 [
@@ -327,10 +387,45 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            let targetCustomers = res.text;
-                            ideaObj.targetCustomers = [targetCustomers];
-                            convo.setVar("chosenProgram", res.text);
-                            convo.transitionTo("missed_target_customer_thread", `Great. ${res.text} are a great target segment`);
+                            let targetCustomers = [];
+                            try {
+                                targetCustomers = res.text.split(',');
+                            }
+                            catch (e) {
+                                console.log(e);
+                                convo.repeat();
+                            }
+                            ideaObj.targetCustomers = targetCustomers;
+                            convo.say(`Great. ${res.text} are a great target segment`)
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "response_thread");
+                
+                convo.addQuestion({
+                    text : "Are there any target customers that I might have missed ? "
+                },
+                [
+                    {
+                        pattern : bot.utterances.yes,
+                        callback : function(res, convo) {
+                            convo.gotoThread("missed_customer_segment_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern : bot.utterances.no,
+                        callback : function(res, convo) {
+                            convo.gotoThread("choose_customer_segment_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            convo.repeat();
                             convo.next();
                         }
                     }
