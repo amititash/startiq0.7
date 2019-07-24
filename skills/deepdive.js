@@ -318,11 +318,18 @@ module.exports = function(controller) {
                 })
 
                 convo.addQuestion({
-                    "text" : "Would you like to play a game ?",
+                    "text" : "Please choose a target customer from the following list.",
                     "response_type": "in_channel",
                     attachments : attachment,
                 },
                 [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function ( res, convo ) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
                     {
                         default : true,
                         callback : function(res, convo) {
