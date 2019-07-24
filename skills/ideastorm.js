@@ -2,7 +2,7 @@ const axios = require('axios');
 const store = require('../store/store');
 
 
-const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+3}`)
+const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+1}`)
 
 module.exports = function(controller) {
     controller.on('direct_message , direct_mention', function(bot, message) {
