@@ -1,0 +1,20 @@
+# Can't deploy on GAE if local file storage being used.
+
+env: standard
+runtime: nodejs10
+
+service : startiq-community
+
+env_variables:
+  clientId : 661945479492.662441867477
+  clientSecret : 748fef2d3f7677088882e1a36c1c755a
+  clientSigningSecret : 7fd366cdaee604515bf6aec241a0e19d
+  dashbot_api_token : scvuhsT5F29ccKatikCe8nZlqvBcymF3D6eiSUP3
+  BACKEND_API_URL : http://3.93.42.26:3000
+  CLASSIFIER_API_URL : http://13.234.226.241:3333
+
+handlers:
+- url: /.*
+  script: auto
+  secure: always
+  redirect_http_response_code: 301
