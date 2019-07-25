@@ -74,13 +74,17 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
+                    text : "Some error occurred"
+                },"error_thread");
+
+                convo.addMessage({
                     text : "No response saved. You can type 'ideastorm' to record multiple ideas or 'deepdive' to pick an idea and work on it."
                 },"early_exit_thread");
 
 
 
                 convo.addMessage({
-                    text : "Thanks ! Your responses have been saved"
+                    text : ""
                 },"save_responses_thread");
 
            
@@ -141,7 +145,7 @@ module.exports = function(controller) {
                 "chosen_customer_segment_thread");
     
                 convo.addMessage({
-                    text : `${deepdive_replies["similar_companies_exist"]["question"]}`
+                    text : "It looks like there are several companies that develop software for {{vars.target_customer_segment}}. Here are a few that I found with links to their website and a short description. Do any of these seem like competitors? If so, click on them to add them to your idea."
                 },"chosen_customer_segment_thread");
     
                 convo.addMessage({
@@ -231,35 +235,136 @@ module.exports = function(controller) {
                 },"chosen_customer_segment_thread");
     
                 convo.addQuestion({
-                    text : `${deepdive_replies["analogous_products_response"]["question"]}`
+                    text : `${deepdive_replies["analogous_products_response"]["question"]}`,
+                    attachments:[
+                        {
+                            title: `Do you agree ?`,
+                            callback_id: 'analogous_products',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name":"yes",
+                                    "text": "Yes",
+                                    "value": "yes",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "No",
+                                    "value": "no",
+                                    "type": "button",
+                                }
+                            ]
+                        }
+                    ]
                 },
                 [
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
                             convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern : bot.utterances.yes,
+                        callback : function(res, convo){
+                            convo.setVar("analogous_products", "Dora Datafox");
+                            convo.gotoThread("chosen_analogous_products_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern : bot.utterances.no,
+                        callback : function(res, convo){
+                            convo.gotoThread("suggest_analogous_products_thread");
                             convo.next();
                         }
                     },
                     {
                         default : true,
                         callback : function(res, convo){
-                            ideaObj.relevantAnalogousProducts = res.text;
-                            convo.setVar("analogousProduct",res.text);
+                            convo.repeat();
                             convo.next();
                         }
                     }
                 ],
                 {},          
                 "chosen_customer_segment_thread");
+
+
+
+
+                convo.addQuestion({
+                    text : "Can you suggest some names then ?"
+                },
+                [
+                    {
+                        pattern : bot.utterances.cancel,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            convo.setVar("analogous_products", res.text);
+                            convo.sayFirst("Noted");
+                            convo.gotoThread("chosen_analogous_products_thread");
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "suggest_analogous_products_thread");
+
+
+            
     
                 convo.addMessage({
                     text : `${deepdive_replies["market_segment_categories"]["question"]}`
-                },"chosen_customer_segment_thread");
+                },"chosen_analogous_products_thread");
                 
     
+                // convo.addQuestion({
+                //     text : "{{vars.idea_categories}}"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("save_responses_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : function(res,convo) {
+                //             convo.setVar("categories", res.text);
+                //             convo.next();
+                //         }
+                //     }
+                // ],
+                // {},
+                // "chosen_analogous_products_thread");
+
+
+                convo.addMessage({
+                    text : "{{vars.idea_categories}}"
+                }, "chosen_analogous_products_thread");
+    
+                convo.addMessage({
+                    text : `${deepdive_replies["financing_activity"]["question"]}`
+                },"chosen_analogous_products_thread");
+    
+                convo.addMessage({
+                    text : `${deepdive_replies["recently_funded_startups"]["question"]}`,
+                },"chosen_analogous_products_thread");
+
+
                 convo.addQuestion({
-                    text : "{{vars.startuptag}} Placeholder text"
+                    text : "Do you want the results to be mailed to you and your mentor ?"
                 },
                 [
                     {
@@ -270,30 +375,36 @@ module.exports = function(controller) {
                         }
                     },
                     {
+                        pattern : bot.utterances.yes,
+                        callback : function(res, convo) {
+                            // email sending logic here.
+                            convo.transitionTo("save_responses_thread", "I have sent the email. Thank you. You may try typing 'ideastorm' or 'rank ideas' ");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern : bot.utterances.no,
+                        callback : function(res, convo) {
+                            convo.transitionTo("save_responses_thread", "You may try typing 'ideastorm' or 'rank ideas'.");
+                            convo.next();
+                        }
+                    },
+                    {
                         default : true,
-                        callback : function(res,convo) {
-                            convo.setVar("categories", res.text);
+                        callback : function(res, convo) {
+                            convo.repeat();
                             convo.next();
                         }
                     }
                 ],
                 {},
-                "chosen_customer_segment_thread");
-    
-                convo.addMessage({
-                    text : `${deepdive_replies["financing_activity"]["question"]}`
-                },"chosen_customer_segment_thread");
-    
-                convo.addMessage({
-                    text : `${deepdive_replies["recently_funded_startups"]["question"]}`,
-                    action : "save_responses_thread"
-                },"chosen_customer_segment_thread");
+                "chosen_analogous_products_thread")
 
 
                 convo.beforeThread("choose_customer_segment_thread", function(convo, next){
                     let targetCustomers = ideaObj.targetCustomers;
                     let dropDownMenu = {
-                        text : "Choose target customer from the following list.",
+                        text : "Please choose the most important segment from this list.",
                         fallback : "fallback text",
                         color : "#3AA3E3",
                         attachment_type : "default",
@@ -318,7 +429,6 @@ module.exports = function(controller) {
                 })
 
                 convo.addQuestion({
-                    "text" : "Please choose a target customer from the following list.",
                     "response_type": "in_channel",
                     attachments : attachment,
                 },
@@ -333,6 +443,7 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            convo.setVar("target_customer_segment",customer_segment);
                             convo.transitionTo("chosen_customer_segment_thread",`Okay. You chose ${customer_segment}.`);
                             convo.next();
                         }
@@ -378,6 +489,32 @@ module.exports = function(controller) {
                 "missed_customer_segment_thread");
 
 
+                convo.beforeThread("response_thread", async function(convo, next) {
+                    let ideaDescription = "";
+                    let ideaCategories = [];
+                    try {
+                        ideaDescription = ideaObj.ideaDescription;
+                        let url = `${process.env.CLASSIFIER_API_URL}/categories?idea=${ideaDescription}`
+                        let response = await axios.get(url);
+                        ideaCategories = response.data["PRED"].slice(0,5);
+                    }
+                    catch(e) {
+                        console.log(e);
+                        convo.gotoThread("error_thread");
+                    }
+                    let ideaCategoriesString = "";
+                    ideaCategories.forEach( category => {
+                        ideaCategoriesString += `${category.topic}\n`;
+                    })
+                    console.log(ideaCategoriesString);
+                    convo.setVar("idea_categories", ideaCategoriesString);
+
+
+                    
+                    next();
+                })
+
+
                 convo.addQuestion({
 
                     //First question asking the user for target customers.
@@ -412,7 +549,27 @@ module.exports = function(controller) {
                 "response_thread");
                 
                 convo.addQuestion({
-                    text : "Are there any target customers that I might have missed ? "
+                    attachments:[
+                        {
+                            title: `${deepdive_replies["missed_target_customers"]["question"]}`,
+                            callback_id: 'missed_target_customers',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name":"yes",
+                                    "text": "Yes",
+                                    "value": "yes",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "No",
+                                    "value": "no",
+                                    "type": "button",
+                                }
+                            ]
+                        }
+                    ]
                 },
                 [
                     {

@@ -6,11 +6,20 @@ module.exports = function(controller) {
     controller.on('direct_message , direct_mention', function(bot, message) {
 
         if(message.text === "rank ideas") {
+
+
+            if(!store.get(message.user)) {
+                console.log("User not found in the local storage.");
+                return ;
+            }
+
+            
+
             bot.createConversation(message, function(err, convo) {
 
 
                 convo.addQuestion({
-                    text : `How would you like to rank your ideas ?\n1. By Fundability.\n2. By Freshness`
+                    text : `How would you like to rank your ideas ?(Please enter the corresponding number)\n1. By Fundability.\n2. By Freshness`
                 },
                 [
                     {
@@ -25,6 +34,13 @@ module.exports = function(controller) {
                         callback : function(res, convo) {
                             convo.gotoThread("sortby_freshness_thread");
                             convo.next();   
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            convo.repeat();
+                            convo.next();
                         }
                     }
                 ],

@@ -33,7 +33,7 @@ module.exports = {
         question : "Great, let me see if I can dig a bit deeper into the idea."
     },
     "analogous_products" : {
-        question : "Here are some analogous products but targeting different markets, are any of these relevant?"
+        question : "Here are some analogous products but targeting different markets"
     },
     "analogous_products_response" : {
         question : "Dora Datafox"

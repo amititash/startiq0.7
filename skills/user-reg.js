@@ -13,7 +13,7 @@ module.exports = function(controller) {
                 },
                 [
                     {
-                        pattern : bot.utterance.quit,
+                        pattern : bot.utterances.quit,
                         callback : function(res, convo) {
                             bot.reply(message, "Incomplete registration. Please register yourself to use the platform.");
                             convo.stop();
@@ -119,7 +119,7 @@ module.exports = function(controller) {
                 
 
                 convo.addMessage({
-                    text : "Hello {{vars.username}}. Welcome to the platform. Now you many proceed by typing 'ideastorm' for recording multiple ideas, or you may type 'deepdive' for exploring a particular idea."
+                    text : "Hello {{vars.username}}. Welcome to the platform. Now you many proceed by typing 'ideastorm' for recording multiple ideas, or you may type 'deepdive' for exploring a particular idea or 'rank ideas' to list ideas by ranking."
                 },"save_responses_thread");
 
                 convo.activate();

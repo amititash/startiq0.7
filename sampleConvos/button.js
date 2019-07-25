@@ -22,18 +22,6 @@ module.exports = function(controller) {
                                 "text": "No",
                                 "value": "no",
                                 "type": "button",
-                            },
-                            {
-                                "name":"no",
-                                "text": "No",
-                                "value": "no",
-                                "type": "button",
-                            },
-                            {
-                                "name":"no",
-                                "text": "No",
-                                "value": "no",
-                                "type": "button",
                             }
                         ]
                     }
