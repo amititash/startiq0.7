@@ -33,11 +33,14 @@ module.exports = function(controller) {
 
         if(message.text === 'deepdive') {
    
-            // What if deepdive cancelled on very first step so that no idea itself ?
+            //Global list of variables get/set across different threads.
             let existingIdeas = [];
             let existingIdeasIndex = 1;
             let ideaMap = {};
             let attachment = [];
+            let ideaCategoriesMap = {};
+            let competitors = [];
+            
             try {
                 let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
                 existingIdeas = ideas.data;
@@ -153,7 +156,27 @@ module.exports = function(controller) {
                 },"chosen_customer_segment_thread");
     
                 convo.addQuestion({
-                    text : `${deepdive_replies["any_other_competitors"]["question"]}`
+                    attachments:[
+                        {
+                            title: `${deepdive_replies["any_other_competitors"]["question"]}`,
+                            callback_id: 'any_competitors',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name":"yes",
+                                    "text": "Yes",
+                                    "value": "yes",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "No",
+                                    "value": "no",
+                                    "type": "button",
+                                }
+                            ]
+                        }
+                    ]
                 },
                 [
                     {
@@ -164,42 +187,114 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        default : true,
-                        callback : function(res, convo) {
-                            let competitors = res.text;
-                            ideaObj.competitors = [competitors];
-                            convo.setVar("competitors",res.text);
-                            convo.next();
-                        }
-                    }
-                ]
-                ,
-                {},
-                "chosen_customer_segment_thread");
-    
-                convo.addQuestion({
-                    text : `${deepdive_replies["substitute_products"]["question"]}`
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("save_responses_thread");
+                        pattern: "yes",
+                        callback: function(res, convo) {
+                            convo.gotoThread("choose_competitors_thread");
                             convo.next();
                         }
                     },
                     {
-                        default : true,
-                        callback : function(res, convo) {
-                            let substitute_products = res.text;
-                            ideaObj.substitute_products = [substitute_products];
-                            convo.setVar("substituteProduct",res.text);
+                        pattern: "no",
+                        callback: function(res, convo) {
+                            convo.gotoThread("chosen_competitors_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default: true,
+                        callback: function(res, convo) {
+                            convo.repeat();
                             convo.next();
                         }
                     }
                 ],
                 {},
                 "chosen_customer_segment_thread");
+
+
+                convo.addQuestion({
+                    text : "Please enter a comma seperated list of the competitors."
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function (res, convo) {
+                            competitors = res.text.split(',');
+                            console.log("competitors", competitors);
+                            convo.gotoThread("chosen_competitors_thread");
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "choose_competitors_thread");
+
+
+    
+                convo.addQuestion({
+                    attachments:[
+                        {
+                            title: `${deepdive_replies["substitute_products"]["question"]}`,
+                            callback_id: 'any_subsitute_products',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name":"yes",
+                                    "text": "Yes",
+                                    "value": "yes",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "No",
+                                    "value": "no",
+                                    "type": "button",
+                                }
+                            ]
+                        }
+                    ]
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern: "yes",
+                        callback: function(res, convo) {
+                            convo.gotoThread("choose_substitute_products_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern: "no",
+                        callback: function(res, convo) {
+                            convo.gotoThread("chosen_substitute_products_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default: true,
+                        callback: function(res, convo) {
+                            convo.repeat();
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "chosen_competitors_thread");
+
+
     
                 convo.addQuestion({
                     text : `${deepdive_replies["how_idea_better"]["question"]}`
@@ -218,21 +313,22 @@ module.exports = function(controller) {
                             let competitiveDifferentiation = res.text;
                             ideaObj.competitiveDifferentiation = [competitiveDifferentiation]
                             convo.setVar("howIdeaBetter",res.text);
+                            convo.gotoThread("chosen_substitute_products_thread");
                             convo.next();
                         }
                     }
                 ]
                 ,
                 {},
-                "chosen_customer_segment_thread");
+                "choose_substitute_products_thread");
     
                 convo.addMessage({
                     text : `${deepdive_replies["dig_deeper_into_idea"]["question"]}`
-                },"chosen_customer_segment_thread");
+                },"chosen_substitute_products_thread");
     
                 convo.addMessage({
                     text : `${deepdive_replies["analogous_products"]["question"]}`
-                },"chosen_customer_segment_thread");
+                },"chosen_substitute_products_thread");
     
                 convo.addQuestion({
                     text : `${deepdive_replies["analogous_products_response"]["question"]}`,
@@ -290,7 +386,7 @@ module.exports = function(controller) {
                     }
                 ],
                 {},          
-                "chosen_customer_segment_thread");
+                "chosen_substitute_products_thread");
 
 
 
@@ -326,33 +422,36 @@ module.exports = function(controller) {
                     text : `${deepdive_replies["market_segment_categories"]["question"]}`
                 },"chosen_analogous_products_thread");
                 
-    
-                // convo.addQuestion({
-                //     text : "{{vars.idea_categories}}"
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("save_responses_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : function(res,convo) {
-                //             convo.setVar("categories", res.text);
-                //             convo.next();
-                //         }
-                //     }
-                // ],
-                // {},
-                // "chosen_analogous_products_thread");
 
-
-                convo.addMessage({
+                convo.addQuestion({
                     text : "{{vars.idea_categories}}"
-                }, "chosen_analogous_products_thread");
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            let chosenCategories = [];
+                            let numString = res.text.replace(/ /g, '');
+                            let chosenNumbers = numString.split(',');
+                            chosenNumbers.forEach( number => {
+                                if(ideaCategoriesMap[`${number}`]) {
+                                    chosenCategories.push(ideaCategoriesMap[`${number}`]);
+                                }
+                            })
+                            console.log(chosenCategories);
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "chosen_analogous_products_thread");
     
                 convo.addMessage({
                     text : `${deepdive_replies["financing_activity"]["question"]}`
@@ -377,8 +476,19 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.yes,
                         callback : function(res, convo) {
-                            // email sending logic here.
-                            convo.transitionTo("save_responses_thread", "I have sent the email. Thank you. You may try typing 'ideastorm' or 'rank ideas' ");
+                            convo.ask({
+                                text : "Please enter your mentor's email id"
+                            },
+                            [
+                                {
+                                    default : true,
+                                    callback : function(res, convo) {
+                                        //Mail sending logic here.
+                                        convo.transitionTo("save_responses_thread", "I have sent the email. Thank you. You may explore the platform by typing 'ideastorm' or 'rank ideas' ");
+                                        convo.next();
+                                    }
+                                }
+                            ])
                             convo.next();
                         }
                     },
@@ -503,12 +613,16 @@ module.exports = function(controller) {
                         convo.gotoThread("error_thread");
                     }
                     let ideaCategoriesString = "";
-                    ideaCategories.forEach( category => {
-                        ideaCategoriesString += `${category.topic}\n`;
+                    ideaCategories.forEach( (category,index) => {
+                        ideaCategoriesMap[`${index+1}`] = category.topic;
+                        ideaCategoriesString += `${index+1}. ${category.topic}\n`;
                     })
-                    console.log(ideaCategoriesString);
-                    convo.setVar("idea_categories", ideaCategoriesString);
 
+
+
+
+                    console.log(ideaCategoriesMap,ideaCategoriesString);
+                    convo.setVar("idea_categories", ideaCategoriesString);
 
                     
                     next();

@@ -39,7 +39,7 @@ module.exports = {
         question : "Dora Datafox"
     },
     "market_segment_categories" : {
-        question : "Based on the information you provided, it looks like your market segment includes the following categories. Check all that you think are relevant."
+        question : "Based on the information you provided, it looks like your market segment includes the following categories. Enter comma seperated list of numbers corresponding to categories that you find relevant."
     },
     "financing_activity" : {
         question : "Based on financing data, this market has seen some financing activity. Startups in this space that have recently raised funding include:"
