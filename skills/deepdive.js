@@ -418,7 +418,7 @@ module.exports = function(controller) {
                 },
                 [
                     {
-                        pattern : bot.utterances.cancel,
+                        pattern : bot.utterances.quit,
                         callback : function(res, convo) {
                             convo.gotoThread("save_responses_thread");
                             convo.next();
@@ -708,6 +708,13 @@ module.exports = function(controller) {
                     ]
                 },
                 [
+                    {
+                        pattern : bot.utterances.yes,
+                        callback : function(res, convo) {
+                            convo.gotoThread("save_responses_thread");
+                            convo.next();
+                        }
+                    },
                     {
                         pattern : bot.utterances.yes,
                         callback : function(res, convo) {
