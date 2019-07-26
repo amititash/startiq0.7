@@ -1,6 +1,7 @@
 const axios = require('axios');
 const store = require('../store/store');
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
+const elasticSearchService =  require('../utils/elasticsearch');
 
 /*
 
@@ -128,7 +129,7 @@ module.exports = function(controller) {
                     },
                     {
                         default : true,
-                        callback : function(res, convo) {
+                        callback : async function(res, convo) {
                             /************************ */
                             
                             //This callback is executed on any answer except a quitting answer like 'cancel', 'quit' etc.
@@ -140,6 +141,24 @@ module.exports = function(controller) {
                             /************************ */
                             let most_innovative_aspect = res.text;
                             ideaObj.newCapabilities = [most_innovative_aspect];
+
+                            let similarCompanies = [];
+                            let ideaDescription = "";
+                            let similarCompaniesString = "";
+                            ideaDescription = ideaObj.ideaDescription;
+                            try {
+                                similarCompanies = await elasticSearchService.search(ideaDescription);
+                                similarCompanies.forEach( element => {
+                                    similarCompaniesString += `${element._source.company_name}\n`;
+                                })
+                            }
+                            catch(e) {
+                                console.log("Error in elasticsearch", e)
+                            }
+                            if(similarCompaniesString === "") {
+                                similarCompaniesString = "No similar companies found."
+                            }
+                            convo.setVar("similar_companies", similarCompaniesString);
                             convo.next();
                         }
                     },
@@ -150,9 +169,12 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "It looks like there are several companies that develop software for {{vars.target_customer_segment}}. Here are a few that I found with links to their website and a short description. Do any of these seem like competitors? If so, click on them to add them to your idea."
                 },"chosen_customer_segment_thread");
+
+               
     
                 convo.addMessage({
-                    text : `${deepdive_replies["similar_companies_found"]["question"]}`
+                    // text : `${deepdive_replies["similar_companies_found"]["question"]}`
+                    text : "{{vars.similar_companies}}"
                 },"chosen_customer_segment_thread");
     
                 convo.addQuestion({

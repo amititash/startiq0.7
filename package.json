@@ -5,10 +5,10 @@
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
-    "deploy" : "gcloud app deploy"
+    "deploy": "gcloud app deploy"
   },
-  "engines" : {
-    "node" : "10.x.x"
+  "engines": {
+    "node": "10.x.x"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -20,6 +20,7 @@
     "data-store": "^3.1.0",
     "debug": "^2.3.3",
     "dotenv": "^8.0.0",
+    "elasticsearch": "^16.3.0",
     "express": "^4.14.0",
     "express-hbs": "^1.0.4",
     "node-env-file": "^0.1.8",
