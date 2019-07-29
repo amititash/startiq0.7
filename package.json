@@ -12,6 +12,8 @@
     "botbuilder-storage-mongodb": "^0.9.5",
     "botkit": "^4.5.0",
     "botkit-plugin-cms": "^1.0.2",
-    "dotenv": "^7.0.0"
+    "data-store": "^3.1.0",
+    "dotenv": "^7.0.0",
+    "elasticsearch": "^16.3.0"
   }
 }
