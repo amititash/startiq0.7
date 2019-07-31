@@ -3,7 +3,7 @@ module.exports = {
         question : "(Variant 2) I’m here to help you develop your startup idea. What are you trying to build and for whom ?"
     },
     "who_are_target_customers" : {
-        question : "(Variant 2)So who are your target customers ?"
+        question : "(Variant 2)So who are your target customers ?  Please enter a commma separated list."
     },
     "missed_target_customers" : {
         question : "(Variant 2)Are there other target customers that I’ve missed ?"

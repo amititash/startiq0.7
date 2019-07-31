@@ -1,130 +1,150 @@
 const store = require('../store/store');
 const axios = require('axios');
+const { Botkit, BotkitConversation } = require('botkit');
 
 
 module.exports = function(controller) {
-    controller.on('direct_message', function(bot, message){
-        let userInfo = {};
-        if( !store.get(message.user) ){
-            bot.createConversation(message, function(err, convo) {
-                
-                convo.ask({
-                    text : "Hi ! I am the StartIQ bot. Kindly provide your e-mail id for registration purpose."
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            bot.reply(message, "Incomplete registration. Please register yourself to use the platform.");
-                            convo.stop();
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let email = res.text;
-                            try {
-                                email = email.slice(email.indexOf('|')+1).slice(0,-1);
-                            }
-                            catch(e) {
-                                console.log("Error in converting email", e);
-                            }
-                            userInfo.email = email;
-                            store.set(message.user, userInfo.email);
-                            convo.next();
-                        }
-                    }
-                ]);
 
 
-                convo.ask({
-                    text : "Thank you. May I know your name please ?"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("save_responses_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let name = res.text;
-                            convo.setVar("username", name);
-                            userInfo.username = name;
-                            convo.next();
-                        }
-                    }
-                ]);
-                
-                
+    let userInfo = {};
 
-                convo.ask({
-                    text : "Which university are you enrolled in ?"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let organisation = res.text;
-                            userInfo.organisation = organisation
-                            convo.next();
-                        }
-                    }
-                ]);
-                
+    const USER_REG_DIALOG_ID = 'user-reg-dialog';
 
-                convo.ask({
-                    text : "What is your core skillset (business, tech etc.)?  "
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
+    let convo = new BotkitConversation(USER_REG_DIALOG_ID, controller);
 
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let skillset = res.text;
-                            userInfo.bio = skillset;
+    
 
-                            //Now we have complete data, so save it. 
-                            let url = `${process.env.BACKEND_API_URL}/api/v1/users`;
-                            axios.post(url, userInfo)
-                                .then ( response => {
-                                    console.log("User details saved" , response.data);
-                                    
-                                    convo.gotoThread("save_responses_thread");
-                                    convo.next()
-                                })
-                                .catch( error => {
-                                    console.log("Error occurred in saving user details", error);
-                                    throw error;
-                                })
-                        }
-                    }
-                ]);
-                
-
-                convo.addMessage({
-                    text : "Hello {{vars.username}}. Welcome to the platform. Now you many proceed by typing 'ideastorm' for recording multiple ideas, or you may type 'deepdive' for exploring a particular idea or 'rank ideas' to list ideas by ranking."
-                },"save_responses_thread");
-
-                convo.activate();
-            })
+    convo.ask({
+        text : "Hi ! I am the StartIQ bot. Kindly provide your e-mail id for registration purpose."
+    },
+    [
+        {
+            pattern : "cancel",
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                convo.gotoThread("unsuccessfull_registration_thread");
+            }
+        },
+        {
+            default : true,
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                let email = res;
+                try {
+                    email = email.slice(email.indexOf('|')+1).slice(0,-1);
+                }
+                catch(e) {
+                    console.log("Error in converting email", e);
+                }
+                userInfo.email = email;
+                let slackUserId = convo.step.values.user;
+                store.set(slackUserId, userInfo.email);
+            }
         }
+    ]);
+
+
+    convo.ask({
+        text : "Thank you. May I know your name please ?"
+    },
+    [
+        {
+            pattern : "cancel",
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                convo.gotoThread("successfull_registration_thread");
+            }
+        },
+        {
+            default : true,
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                let name = res;
+                convo.setVar("username", name);
+                userInfo.username = name;
+            }
+        }
+    ]);
+
+
+
+    convo.ask({
+        text : "Which university are you enrolled in ?"
+    },
+    [
+        {
+            pattern : "cancel",
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                convo.gotoThread("successfull_registration_thread");
+            }
+        },
+        {
+            default : true,
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                let organisation = res;
+                userInfo.organisation = organisation
+            }
+        }
+    ]);
+
+
+
+    convo.ask({
+        text : "What is your core skillset (business, tech etc.)?  "
+    },
+    [
+        {
+            pattern : "cancel",
+            handler : async (res, convo, bot) => {
+                convo.gotoThread("successfull_registration_thread");
+            }
+        },
+        {
+            default : true,
+            type : 'string',
+            handler : async (res, convo, bot) => {
+                let skillset = res;
+                userInfo.bio = skillset;
+
+                //Now we have complete data, so save it. 
+                let url = `${process.env.BACKEND_API_URL}/api/v1/users`;
+                axios.post(url, userInfo)
+                    .then ( response => {
+                        console.log("User details saved" , response.data);
+                        convo.gotoThread("successfull_registration_thread");
+                    })
+                    .catch( error => {
+                        console.log("Error occurred in saving user details", error);
+                        throw error;
+                    })
+            }
+        }
+    ]);
+
+
+    convo.addMessage({
+        text : "Incomplete registration. Please complete the registration process."
+    },"unsuccessfull_registration_thread");
+
+
+
+
+    convo.addMessage({
+        text : "Hello. Welcome to the platform. Now you many proceed by typing 'ideastorm' for recording multiple ideas, or you may type 'deepdive' for exploring a particular idea or 'rank ideas' to list ideas by ranking."
+    },"successfull_registration_thread");
+    
+
+    
+    controller.addDialog(convo);
+
+  
+    controller.on('message, direct_message', async (bot, message)=> {
+        console.log(message.user);
+        if(!store.get(message.user)) {
+            await bot.beginDialog(USER_REG_DIALOG_ID);   
+        }
+        console.log(userInfo);
     })
 }
-

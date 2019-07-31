@@ -1,8 +1,17 @@
 const store = require('../store/store');
+const { BotkitConversation } = require('botkit');
 
 module.exports = function(controller) {
-    controller.on('direct_message, direct_mention', function(bot, message) {
+    const GREET_DIALOG_ID = 'greet-dialog';
 
+    let convo = new BotkitConversation(GREET_DIALOG_ID,controller);
+
+    convo.say({
+        text : "Hi ! I am the StartIQ bot. You can say 'ideastorm' , 'deepdive', or 'rank ideas'"
+    })
+
+    controller.addDialog(convo);
+    controller.on('direct_message, direct_mention', async (bot, message) => {
 
         if(message.text === 'Hi'|| message.text === 'hi' || message.text === "hello" || message.text === "Hello" || message.text === "Hey" || message.text === "hey" ){
             if(!store.get(message.user)) {
@@ -10,15 +19,9 @@ module.exports = function(controller) {
                 return ;
             }
 
-            bot.createConversation(message, function(err, convo) {
-                convo.addMessage({
-                    text : "Hi ! I am the StartIQ bot. You can say 'ideastorm' , 'deepdive', or 'rank ideas' "
-                })
-                convo.activate();
-            })
-
-
-
+            else {
+                await bot.beginDialog(GREET_DIALOG_ID);
+            }
         }
     })
 }
