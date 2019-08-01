@@ -314,37 +314,32 @@ module.exports = function(controller) {
         });
         attachment.push(dropDownMenu);
 
-        // !!!!!!!!!!!! Here we set "attachment" variable to be used as value of "attachments" field in 
-        //choose_customer_segment_thread. Ideally we should be able to access this in choose_customer_segment_thread
+
     })
 
     convo.addQuestion({
         "response_type": "in_channel",
         text : "placeholder",
-
-
-        /// !!!!!!!!!!!!!!! 
-        //Here is the main blocker
-        //What we expect :  we should be able to use the value of "attachments" field as set in the 
-        //before hook of choose_customer_segement_thread above .
-        //Actually happening : the value of "attachments" used here is []as set in the startup when the dialog was loaded
-        //onto the stack. 
-        attachments : attachment,
+        //Drop down menu working now 
+        attachments : async(template, vars) => {
+            return attachment
+        }
     },
     [
         {
             pattern : "cancel",
             callback : function ( res, convo ) {
                 convo.gotoThread("save_responses_thread");
-                convo.next();
             }
         },
         {
             default : true,
             handler : async (res, convo, bot) =>  {
                 convo.setVar("target_customer_segment",customer_segment);
+                //  Control should come here if any choice selected from drop down menus
+                // In v0.7 , it worked.
+                console.log("Exec till here");
                 convo.transitionTo("chosen_customer_segment_thread",`Okay. You chose ${customer_segment}.`);
-                convo.next();
             }
         }
     ],
