@@ -1,6 +1,6 @@
 module.exports = {
     "what_is_the_idea" : {
-        question : "(Variant 2) I’m here to help you develop your startup idea. What are you trying to build and for whom ?"
+        question : "I’m here to help you develop your startup idea. What are you trying to build and for whom ?"
     },
     "who_are_target_customers" : {
         question : "(Variant 2)So who are your target customers ?"

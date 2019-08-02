@@ -1,5 +1,5 @@
-const axios = require('axios');
 const store = require('../store/store');
+const axios = require('axios');
 
 
 const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+1}`)
@@ -18,11 +18,10 @@ module.exports = function(controller) {
                 
                 bot.createConversation(message, function(err, convo) {
 
-                    //Here, we are randomly choosing a particular response from the chosen set of response.
+
                     convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
     
                     convo.addQuestion({
-                        // text : "Ok, next. (say 'cancel' when you want to stop)"
                         text : "{{vars.ideastorm_reply}}"
                     },
                     [
@@ -30,12 +29,11 @@ module.exports = function(controller) {
                             pattern : bot.utterances.quit,
                             callback : function(res, convo) {
                                 convo.say({
-                                    text : "Your responses were saved. You can type 'ideastorm' to record multiple ideas or 'deepdive' to pick an idea and work on it."
+                                    text : "Ok, thats perfectly fine. You can always add an additional idea by typing 'ideastorm' or develop one of your ideas further by 'deepdive'."
                                 })
                                 convo.next();
                             }
                         },
-                        // !!!!!!!!!!!!!!!!! optimize . 2 ways : bulk insert, rabbitmq . 
                         {
                             default : true,
                             callback : function(res, convo) {
@@ -70,16 +68,26 @@ module.exports = function(controller) {
                     ],
                     {},
                     "idea_input_thread");
+
+
+                    convo.say({
+                        text : "The first step in generating an 'amazing' idea is generating 'many' ideas."
+                    });
+
+
+                    convo.say({
+                        text : "A good idea isn't too long or too short. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
+                    })
         
                     convo.ask({
-                        text: 'Looks like you want to generate multiple ideas quickly, lets do it. Don’t worry about getting it perfect, we can improve the ideas later.',
+                        text: "Type your first idea below. Go ahead. Our algorithms will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further. Let's start.",
                     },
                     [
                         {
                             pattern : bot.utterances.quit,
                             callback : function( res, convo) {
-                                convo.say({
-                                    text : "No responses were saved. You can type 'ideastorm' to record multiple ideas or 'deepdive' to pick an idea and work on it."
+                                convo.sayFirst({
+                                    text : "Ok, thats perfectly fine. You can always add an additional idea by typing 'ideastorm' or develop one of your ideas further by 'deepdive'."
                                 })
                                 convo.next();
                             }
@@ -93,7 +101,7 @@ module.exports = function(controller) {
                                     ideaDescription : res.text,
                                     ideaName : res.text.slice(0,200),
                                 }
-                                console.log(url);
+                                console.log(url, data);
                                 axios.post(url,data)
                                     .then( response => {    
                                         console.log("data was saved successfully");
@@ -111,76 +119,6 @@ module.exports = function(controller) {
                     convo.activate();
                 });
             }
-            
-            if(ideastorm_replies.flag === "five_ideas_at_once") {
-                let ideas = [];
-                let count = 5;
-                bot.createConversation(message, function(error, convo) {
-
-                    convo.addMessage({
-                        text : "Please enter any 5 ideas that you want to record one by one.",
-                        action : "idea_store_thread"
-                    })
-
-                    convo.addQuestion({
-                        text : "",
-                    },
-                    [
-                        {
-                            pattern : bot.utterances.quit,
-                            callback : function(res, convo) {
-                                convo.gotoThread("save_responses_thread");
-                                convo.next();
-                            }
-                        },
-                        {
-                            default : true,
-                            callback : function(res, convo) {
-                                ideas.push(res.text);
-                                count--;
-                                if(count === 0) {
-                                    convo.gotoThread("save_responses_thread");
-                                }
-                                else {
-                                    convo.transitionTo("idea_store_thread","Okay, enter next one.");
-                                }
-                                convo.next();
-                            }
-                        }
-                    ],
-                    {},
-                    "idea_store_thread");
-
-
-
-                    convo.addMessage({
-                        text : "Your responses have been saved."
-                    },"save_responses_thread")
-
-
-
-                    convo.beforeThread("save_responses_thread", function(convo,next) {
-                        ideas.forEach( idea => {
-                            let data = {
-                                ideaOwner : store.get(message.user),
-                                ideaDescription : idea,
-                                ideaName : idea.slice(0,200)
-                            }
-                            let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                            
-                            axios.post(url, data)
-                                .then ( response => {
-                                    console.log("Ideas saved successfully", response.data);      
-                                })
-                                .catch ( error => {
-                                    console.log("Some error occurred in storing ideas", error);
-                                })
-                        })
-                        next();
-                    })
-                    convo.activate();
-                })
-            }
         }
-    })   
+    })
 }

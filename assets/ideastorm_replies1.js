@@ -3,10 +3,10 @@ module.exports = {
     flag : "one_by_one",
     bot_replies : [
         {
-            "statement" : "Awesome! any other idea ? "
+            "statement" : "Great Job! Let us generate a few more."
         },
         {
-            "statement" : "Great. That seems exciting. Any other idea ?"
+            "statement" : "Yes, thats the spirit! Any other idea...? Remember it doesn not have to be perfect. You can discard or refine it later."
         },
         {
             "statement" : "That sounds great. Do you have any other idea ?"
