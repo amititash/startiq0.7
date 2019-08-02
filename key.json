@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "startiq-dialogflow-agent-xxfyd",
+  "private_key_id": "e8643d2e9d4ac30a132dcb4b84120da6e44e1fe7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC9MD5PGFZwIVOg\n6UL9Iaj0N88TOh2rOYsgtyalluig/u/yA9cScrqxmzlolBCKOBHpbWC/ubGBBaIe\nRkhqT/Z5eXVCyv8O2p0BRpN+66lqpHeSynp/l+bhZwEAACVtMOPTN5QOC3IxZ3E5\nvG67Hn1NVCoQMokwbdt2ytj+W6GZBLjzeA3Oih3Ob0qXzX/3jr59g1tiel9Ww5WT\nCBSQgomtSZWgZBhkiPfYxwSTDAiyS9Ewz1lllHUT/SzppjdGiFLslhNfYJzfI3pl\nO7CQNrCVHoHl7emiqx2Nb6MYTXXXT4r5z7cVJPpPKyDApGjlfmDExEaVkUPR/+ZR\n76bDocThAgMBAAECggEAAjiC4Lrjx9xCSax3Scv3el9ogJH78ha3tP4lYl1NlNc3\n7JQM4MrvOVa9vft6oA66r24Q4XXt7m++czhxZkBoSk0ppNYybS5AgyNyPN5fY5te\nNR9H6xUWw8JUZbeQDj0xeBkfdX8++3NlWzoZ+tESWOInfhTDyBQKtup4ZoWflYbZ\nEHBCeAfB23YfIiJYmw/N9DmD0o9sxTh0FYTA9UdCpjYZAFvsi6cT7BOu9nj1f4yf\nFkkhl/Skj4QuANTWPzLD6Z411rxOpQFrbTCL7E6wwV8cL52UJ5zxzWuFgNY3lVF7\nZW4Mj+T7vSwl7vCW8UDqmJA+IHtqjZdGxD0p5igl+QKBgQD/0JI4qoUmojBaSluE\nSVKSufbYPkIvxk9U1rf4hC/wtM3o5yXXzQznDbzXm2Al9/op6H+0RQTifvRUKdY/\nP5mB8XajxpbyuvfmyZyEIA0TpLe2KWDAJutndzLz4ctI3gGDGyqlykOhIXUlK4cW\n+RSLp9JtsoNI3qKAhEnPWUjdmQKBgQC9U1HLAWs72HaXXekXe+e5ckd81domgNYZ\nD8g8GDrUDCGzFqOEPntqsAWvEljawJoRzQr7N6M+D2bD+ZaC+eGe+pxIMe0MPz3/\nsftlx33hhnjGMsrGHUcGmAWbsh20YxdbVAHfWoiCRA7hnFg/DJZAmwzgkB/JK75W\ncvLYtY1eiQKBgQC3KVNIl282tjIAs/TKxuUEgXooYotpQYhTqlmW6q6YnhxAgiAq\nX3q5hLCNf4ZcKS1JDFtDa5ePxG6URFBOgO8chxL3OJ2jthMBf6E9SOWUBwAywXWw\nny01q7cjv6uZxLs4cB8dDbFWkWoa7wuOe1EmnUahnIs7hYy8j/t5JuhxIQKBgBMC\n6+K7yL3gtb/rcT2ndpR7skwJ2XcmVtl7aTsHn9itQzENo+virlf/RwLWj8+fqZkC\nAwlJA/52Y3ZoeMG8P/jL56ekQ86IBzzG7ZzB1JUyAKy+avhL9lbmKyIAV9VGYhEM\ntYdtOuoB1ZC4N3BVXj0slLV0I4z69IkPz+0NBh4pAoGBANb5isenIUJDScyUbqtf\nKfq+DV1n6le3i1m+yuiMTJjbEytjBpIZY+efOhwDEyH+ZZYIqRXX/ru9j+V/iylI\n/wONeS6H+aqFRKVAqGYD9w2ZcQtZUxcQ0z7TUZrmBYy2HODwDIu6EoHDafRLGLXf\narLEaelss5nIiFfZkf7m1TLH\n-----END PRIVATE KEY-----\n",
+  "client_email": "dialogflow-saeudp@startiq-dialogflow-agent-xxfyd.iam.gserviceaccount.com",
+  "client_id": "100370594573129706873",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dialogflow-saeudp%40startiq-dialogflow-agent-xxfyd.iam.gserviceaccount.com"
+}

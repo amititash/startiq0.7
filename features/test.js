@@ -1,29 +1,64 @@
 const {BotkitConversation} = require('botkit');
 module.exports = function(controller) {
-    let dialogid = "abcd";
+    let dialogid = "dialog-1";
     let convo = new BotkitConversation(dialogid, controller);
-
-
-    convo.addQuestion(  async (line, vars)=> {
-        return { text : "Placeholding text"};
+    convo.addQuestion({
+        blocks : [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Pick an item from the dropdown list"
+                },
+                "accessory": {
+                    "type": "static_select",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select an item",
+                        "emoji": true
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Choice 1",
+                                "emoji": true
+                            },
+                            "value": "value-0"
+                        },
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Choice 2",
+                                "emoji": true
+                            },
+                            "value": "value-1"
+                        },
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Choice 3",
+                                "emoji": true
+                            },
+                            "value": "value-2"
+                        }
+                    ]
+                }
+            }
+        ]
     },
     [
         {
-            pattern  :"yes",
-            type : 'string', 
-            handler : async (res, bot, convo) => {
-                console.log("exec")
+            default : true,
+            type : 'string',
+            handler : async(res, convo, bot) => {
+                console.log(res);
+                await bot.say("oohoho");
             }
         }
-    ],
-    {},
-    "default");
-
-
-
+    ]);
     controller.addDialog(convo);
-
-    controller.hears(['really'], 'message, direct_message', async (bot, message) => {
+    controller.hears(['test'], 'message, direct_message, interactive_message, interactive_message_callback, block_actions, direct_mention', async (bot, message) => {
         await bot.beginDialog(dialogid);
     })
 }

@@ -141,10 +141,8 @@ module.exports = function(controller) {
 
   
     controller.on('message, direct_message', async (bot, message)=> {
-        console.log(message.user);
         if(!store.get(message.user)) {
             await bot.beginDialog(USER_REG_DIALOG_ID);   
         }
-        console.log(userInfo);
     })
 }

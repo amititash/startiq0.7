@@ -318,8 +318,8 @@ module.exports = function(controller) {
     })
 
     convo.addQuestion({
-        "response_type": "in_channel",
-        text : "placeholder",
+        // "response_type": "in_channel",
+        // text : "placeholder",
         //Drop down menu working now 
         attachments : async(template, vars) => {
             return attachment

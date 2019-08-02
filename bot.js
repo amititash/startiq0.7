@@ -24,6 +24,8 @@ if (process.env.MONGO_URI) {
     });
 }
 
+const dialogflowMiddleware = require('./utils/dialogflow');
+
 
 
 const adapter = new SlackAdapter({
@@ -64,12 +66,27 @@ const controller = new Botkit({
     storage
 });
 
+controller.middleware.receive.use(dialogflowMiddleware.receive);
+
+controller.middleware.ingest.use(async( bot, message, next) => {
+    if(message.type === "message") {
+        console.log(JSON.stringify(message,null,2));
+    }
+    console.log("*********************************************************************");
+    next();
+})
+
 if (process.env.cms_uri) {
     controller.usePlugin(new BotkitCMSHelper({
         uri: process.env.cms_uri,
         token: process.env.cms_token,
     }));
 }
+
+
+
+
+
 
 // Once the bot has booted up its internal services, you can use them to do stuff.
 controller.ready(() => {
