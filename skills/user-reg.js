@@ -55,10 +55,24 @@ module.exports = function(controller) {
                     },
                     {
                         default : true,
-                        callback : function(res, convo) {
+                        callback : async function(res, convo) {
                             let name = res.text;
                             convo.setVar("username", name.split(' ')[0]);
                             userInfo.username = name;
+                            let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
+                            let mailData = {
+                                to : [store.get(message.user)],
+                                from : "engineering@startiq.org",
+                                subject : "StartiQ",
+                                body : `Hi ${name}! Welcome to StartiQ. We are happy to have you on our platform`
+                            }
+                            try {
+                                await axios.post(mailUrl, mailData);
+                            }
+                            catch(e){
+                                console.log("email not sent");
+                                console.log(e.message);
+                            }
                             convo.next();
                         }
                     }
