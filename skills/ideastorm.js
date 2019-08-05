@@ -12,7 +12,7 @@ module.exports = function(controller) {
             return ;
         }
 
-        if(message.text === "ideastorm"){
+        if(message.intent === "ideastorm_intent"){
 
             if(ideastorm_replies.flag === "one_by_one") {
                 

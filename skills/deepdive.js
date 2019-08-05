@@ -13,7 +13,7 @@ module.exports = function(controller) {
         }
 
 
-        if(message.text === "deepdive") {
+        if(message.intent === "deepdive_intent") {
             let existingIdeas = [];
             let existingIdeasIndex = 1;
             let ideaByFundabilityMap = {};
@@ -34,7 +34,6 @@ module.exports = function(controller) {
             catch(error) {
                 console.log(error);
             }
-            console.log(existingIdeas);
 
 
             bot.createConversation(message, function(err, convo) {
