@@ -2,7 +2,6 @@ const store = require('../store/store');
 
 module.exports = function(controller) {
     controller.on('direct_message, message' , function(bot, message){
-        console.log(message.intent);
         if(!store.get(message.user)) {
             console.log("User not found in local storage.");
             return ;

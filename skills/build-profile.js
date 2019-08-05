@@ -1,95 +1,17 @@
 const store = require('../store/store');
-const axios = require('axios');
 
 module.exports = function(controller) {
-    controller.on('direct_message', function(bot, message){
-        let userInfo = {};
-        let skillMap = {};
-        let connectionsMap = {};
-        if( !store.get(message.user) ){
+    controller.on('direct_message, message', function(bot, message) {
+        console.log("wowo");
+        if(!store.get(message.user)){
+            console.log("user not found");
+            return ;
+        }
+        if(message.intent === "build_profile_intent"){
+            console.log("build intent");
+
             bot.createConversation(message, function(err, convo) {
-                
-                convo.say({
-                    text : "Hi there ! :sunglasses: Welcome to StartiQ. I am a science-backed assistant to help you develop and research your business ideas."
-                })
-                convo.ask({
-                    text : "Let's begin by signing you up for a free account. What is your email address ?"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            bot.reply(message, "Incomplete registration. Please register yourself to use the platform.");
-                            convo.stop();
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let email = res.text;
-                            try {
-                                email = email.slice(email.indexOf('|')+1).slice(0,-1);
-                            }
-                            catch(e) {
-                                console.log("Error in converting email", e);
-                            }
-                            userInfo.email = email;
-                            store.set(message.user, userInfo.email);
-                            convo.next();
-                        }
-                    }
-                ]);
 
-                //Currently we save the user into db only after flow wholly complete. But we store user's mail locally at 
-                //the moment he enters his email id. So next time he won't be prompted for sign up until local storage cleared.
-
-                convo.ask({
-                    text : "Great. What is your first name and last name?"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("save_responses_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : async function(res, convo) {
-                            let name = res.text;
-                            convo.setVar("username", name.split(' ')[0]);
-                            userInfo.username = name;
-                            let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
-                            let mailData = {
-                                to : [store.get(message.user)],
-                                from : "engineering@startiq.org",
-                                subject : "StartiQ",
-                                body : `Hi ${name}! Welcome to StartiQ. We are happy to have you on our platform`
-                            }
-                            try {
-                                await axios.post(mailUrl, mailData);
-                            }
-                            catch(e){
-                                console.log("email not sent");
-                                console.log(e.message);
-                            }
-                            convo.next();
-                        }
-                    }
-                ]);
-                
-                
-
-                convo.say({
-                    text : "Fantastic, {{vars.username}}! I've sent you a confirmation email. Just click on the link inside it and your account will be ready to go. :airplane: "
-                });
-
-                convo.say({
-                    text : "Your account is live. Let's do it!"
-                });
-                
                 convo.ask({
                     text : "We can begin by developing a quick assessment of you as an entrepreneur or jump right into generating ideas.",
                     attachments:[
@@ -431,12 +353,12 @@ module.exports = function(controller) {
                     console.log(userInfo);
                     let url = `${process.env.BACKEND_API_URL}/api/v1/users`;
                     let data = userInfo;
-                    try {
-                        await axios.post(url, data);
-                    }
-                    catch(e) {  
-                        console.log("user not saved" , e.message);
-                    }
+                    // try {
+                    //     await axios.post(url, data);
+                    // }
+                    // catch(e) {  
+                    //     console.log("user not saved" , e.message);
+                    // }
                     next(); 
                 })
 

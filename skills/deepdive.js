@@ -653,7 +653,7 @@ module.exports = function(controller) {
                             if(!similarCompanies.length){
                                 similarCompaniesString = "No similar companies found."
                                 convo.setVar("similar_companies", similarCompaniesString);
-                                convo.transitionTo("add_missed_similar_companies_thread", "We did not find any similar companies. Please enter a similar company if you feel it exists and I will dig into it.")
+                                convo.transitionTo("add_missed_similar_companies_thread", "We did not find any similar companies. Did I miss any company , please enter the url of the company and I will dig into it.")
                             }
                             else {
                                 convo.setVar("similar_companies", similarCompaniesString);
@@ -692,7 +692,7 @@ module.exports = function(controller) {
                                 }
                             })
                             console.log(chosenCompanies);
-                            convo.transitionTo("add_missed_similar_companies_thread","Looks like you chose some companies from the list. Did I miss any company ? Please enter the name of the company and I'll dig into it.");
+                            convo.transitionTo("add_missed_similar_companies_thread","Looks like you chose some companies from the list. Did I miss any company ? Please enter the url of the company and I'll dig into it.");
                             convo.next();
                         }
                     }  
@@ -702,7 +702,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Please enter the name of company."
+                    text : "Please enter the url of company."
                 },
                 [
                     {
