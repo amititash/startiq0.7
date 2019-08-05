@@ -26,7 +26,7 @@ module.exports = function(controller) {
             let ideaObj = {};
             let chosenCompanies = [];  // chosen from results of es. 
             let chosenCompaniesMap = {};
-            let similarCompanyCountDown = 2;
+            let similarCompanyCountDown = 1;
             try {
                 let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
                 existingIdeas = ideas.data;
@@ -125,7 +125,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFundabilityMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                        ideaString += `${index+1}. ${element.ideaDescription} (Fundability Score: ${element.fundability})\n`    
                     });
                     console.log("Idea by fundability map", ideaByFundabilityMap);
                     convo.setVar("ideasByFundability" , ideaString)
@@ -134,7 +134,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are top ideas by fundability score.Type the number of the idea you want to develop further.\n{{vars.ideasByFundability}}\n",
+                    text : "Here are top ideas by fundability score. Type the number of the idea you want to develop further.\n{{vars.ideasByFundability}}\n",
                 },
                 [
                     {
@@ -151,12 +151,15 @@ module.exports = function(controller) {
                             let chosenIdea = "";
                             if(ideaByFundabilityMap[`${number}`]){
                                 chosenIdea = ideaByFundabilityMap[`${number}`]
+                                console.log(chosenIdea);
+                                ideaObj.ideaDescription = chosenIdea;
+                                ideaObj.ideaName = chosenIdea.slice(0,200);
+                                convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
                             }
-                            console.log(chosenIdea);
-                            ideaObj.ideaDescription = chosenIdea;
-                            ideaObj.ideaName = chosenIdea.slice(0,200);
-                            console.log(ideaObj);
-                            convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
+                            else {
+                                bot.reply(message, "Please enter a valid response.");
+                                convo.repeat();
+                            }
                             convo.next();
                         }
                     }   
@@ -180,7 +183,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFreshnessMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                        ideaString += `${index+1}. ${element.ideaDescription} (Freshness Score: ${element.freshness})\n`    
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
@@ -207,12 +210,16 @@ module.exports = function(controller) {
                             let chosenIdea = "";
                             if(ideaByFreshnessMap[`${number}`]){
                                 chosenIdea = ideaByFreshnessMap[`${number}`]
+                                console.log(chosenIdea);
+                                ideaObj.ideaDescription = chosenIdea;
+                                ideaObj.ideaName = chosenIdea.slice(0,200);
+                                console.log(ideaObj);
+                                convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
                             }
-                            console.log(chosenIdea);
-                            ideaObj.ideaDescription = chosenIdea;
-                            ideaObj.ideaName = chosenIdea.slice(0,200);
-                            console.log(ideaObj);
-                            convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
+                            else {
+                                bot.reply(message, "Please enter a valid response.");
+                                convo.repeat();
+                            }
                             convo.next();
                         }
                     }   
@@ -264,12 +271,16 @@ module.exports = function(controller) {
                             let chosenIdea = "";
                             if(ideaByRecentMap[`${number}`]){
                                 chosenIdea = ideaByRecentMap[`${number}`]
+                                console.log(chosenIdea);
+                                ideaObj.ideaDescription = chosenIdea;
+                                ideaObj.ideaName = chosenIdea.slice(0,200);
+                                console.log(ideaObj);
+                                convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
                             }
-                            console.log(chosenIdea);
-                            ideaObj.ideaDescription = chosenIdea;
-                            ideaObj.ideaName = chosenIdea.slice(0,200);
-                            console.log(ideaObj);
-                            convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
+                            else {
+                                bot.reply(message, "Please enter a valid response.");
+                                convo.repeat(); 
+                            }
                             convo.next();
                         }
                     }
@@ -468,7 +479,7 @@ module.exports = function(controller) {
                         pattern : "business",
                         callback : function(res,cov){
                             console.log("Chosen customer segment: ", res.text);
-                            convo.setVar("chosen_customer_segment", res.text);
+                            convo.setVar("chosen_customer_segment", "business");
                             ideaObj.chosenCustomerSegment = res.text;
                             convo.next();
                         }
@@ -477,7 +488,7 @@ module.exports = function(controller) {
                         pattern : "individual_customer",
                         callback : function(res, convo) {
                             console.log("Chosen customer segment: ",res.text);
-                            convo.setVar("chosen_customer_segment", res.text);
+                            convo.setVar("chosen_customer_segment", "individual customer");
                             ideaObj.chosenCustomerSegment = res.text;
                             convo.next();
                         }
@@ -486,7 +497,7 @@ module.exports = function(controller) {
                         pattern : "government",
                         callback : function(res, convo) {
                             console.log("Chosen customer segment: ",res.text);
-                            convo.setVar("chosen_customer_segment", res.text);
+                            convo.setVar("chosen_customer_segment", "government");
                             ideaObj.chosenCustomerSegment = res.text;
                             convo.next();
                         }
@@ -579,12 +590,18 @@ module.exports = function(controller) {
                             catch(e) {
                                 console.log("Error in elasticsearch", e)
                             }
-                            if(similarCompaniesString === "") {
+                            console.log("simi")
+                            if(!similarCompanies.length){
                                 similarCompaniesString = "No similar companies found."
+                                convo.setVar("similar_companies", similarCompaniesString);
+                                convo.transitionTo("add_missed_similar_companies_thread", "We did not find any similar companies. Please enter a similar company if you feel it exists and I will dig into it.")
+                            }
+                            else {
+                                convo.setVar("similar_companies", similarCompaniesString);
+                                convo.gotoThread("choose_similar_companies_thread");
                             }
                             console.log(similarCompaniesString);
-                            convo.setVar("similar_companies", similarCompaniesString);
-                            convo.gotoThread("choose_similar_companies_thread");
+                            
                             convo.next();
                         }
                     }     
@@ -616,7 +633,7 @@ module.exports = function(controller) {
                                 }
                             })
                             console.log(chosenCompanies);
-                            convo.transitionTo("add_missed_similar_companies","Looks like you chose several companies from this list as competitors. Which ones did we miss ? Enter the URL and we will try to dig up some more info for you.");
+                            convo.transitionTo("add_missed_similar_companies_thread","Looks like you chose some companies from the list. Did I miss any company ? Please enter the name of the company and I'll dig into it.");
                             convo.next();
                         }
                     }  
@@ -626,7 +643,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : ""
+                    text : "Please enter the name of company."
                 },
                 [
                     {
@@ -639,8 +656,8 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-
-                            chosenCompanies.push(res.text);
+                            let company = res.text.slice(res.text.indexOf('|')+1).slice(0,-1);
+                            chosenCompanies.push(company);
                             console.log("Similar companies chosen: ",chosenCompanies);
                             if(similarCompanyCountDown){
                                 similarCompanyCountDown --;
@@ -654,21 +671,24 @@ module.exports = function(controller) {
                     }
                 ],
                 {},
-                "add_missed_similar_companies");
+                "add_missed_similar_companies_thread");
 
 
                 convo.beforeThread("choose_top_competitor_thread", function(convo, next) {
                     console.log("finally chosen companies", chosenCompanies);
                     ideaObj.chosenCompanies = chosenCompanies;
+                    let chosenCompaniesString = "";
                     chosenCompanies.forEach( (company , index) => {
                         chosenCompaniesMap[`${index+1}`] = company;
+                        chosenCompaniesString += `${index+1} ${company}\n`
                     })
+                    convo.setVar("finally_chosen_competitors", chosenCompaniesString);
                     next();
                 })
 
 
                 convo.addQuestion({
-                    text : "OK. Which one of these is your top competitor?"
+                    text : "OK. Which one of these is your top competitor?\n{{vars.finally_chosen_competitors}}"
                 },
                 [
                     {
@@ -688,6 +708,7 @@ module.exports = function(controller) {
                                 convo.gotoThread("chosen_top_competitor_thread");
                             }
                             else {
+                                bot.reply(message, "Please choose a valid response.");
                                 convo.repeat();
                             }
                             convo.next();
