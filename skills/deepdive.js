@@ -15,6 +15,7 @@ module.exports = function(controller) {
 
         if(message.intent === "deepdive_intent") {
             let existingIdeas = [];
+            let existingIdeasMap = {};
             let existingIdeasIndex = 1;
             let ideaByFundabilityMap = {};
             let ideaByFreshnessMap = {};
@@ -40,7 +41,7 @@ module.exports = function(controller) {
 
                 if(existingIdeas.length > 0) {
                     convo.addQuestion({
-                        text : `It looks like you have ${existingIdeas.length} ideas in your binder. How would you like me to organize your ideas ?\n1. Fundability (our estimate of how fundable the idea is based based on the recent dealflow)\n2. Freshness(whether the idea you are describing looks like other 'hot' ideas out there)\n3. Most recently entered`
+                        text : `It looks like you have ${existingIdeas.length} ideas in your binder. How would you like me to organize your ideas ?\n1. Fundability (our estimate of how fundable the idea is based based on the recent dealflow)\n2. Freshness(whether the idea you are describing looks like other 'hot' ideas out there)\n3. Most recently entered\n4. Product/service category\n5. Search by term`
                     },
                     [
                         {
@@ -72,6 +73,20 @@ module.exports = function(controller) {
                             }
                         },
                         {
+                            pattern : "4",
+                            callback : function(res, convo) {
+                                convo.gotoThread("all_ideas_thread");
+                                convo.next();
+                            }
+                        },
+                        {
+                            pattern : "5",
+                            callback : function(res, convo) {
+                                convo.gotoThread("all_ideas_thread");
+                                convo.next();
+                            }
+                        },
+                        {
                             default : true,
                             callback : function(res, convo) {
                                 convo.repeat();
@@ -82,6 +97,51 @@ module.exports = function(controller) {
                     {},
                     "default")
                 }
+
+                convo.beforeThread("all_ideas_thread", function(convo, next) {
+                    let ideas = existingIdeas;
+                    let ideaString = "";
+                    ideas.forEach( (element,index) => {
+                        existingIdeasMap[`${index+1}`] = element.ideaDescription;
+                        ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                    });
+                    convo.setVar("all_existing_ideas", ideaString);
+                    next();
+                });
+
+                convo.addQuestion({
+                    text : "Here are your ideas:\n{{vars.all_existing_ideas}}\nType the number of the idea you want to develop further."
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");  
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            let number = res.text;
+                            let chosenIdea = "";
+                            console.log(chosenIdea);
+                            if(existingIdeasMap[`${number}`]) {
+                                chosenIdea = existingIdeasMap[`${number}`];
+                                ideaObj.ideaDescription = chosenIdea;
+                                ideaObj.ideaName = chosenIdea.slice(0,200);
+                                convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
+                            }
+                            else {
+                                bot.reply(message, "Please enter a valid response.");
+                                convo.repeat();
+                            }
+                            convo.next();
+                        }
+                    } 
+                ],
+                {},
+                "all_ideas_thread")
 
 
                 convo.addQuestion({
