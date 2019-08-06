@@ -58,6 +58,7 @@ module.exports = function(controller) {
             let chosenCompanies = [];  // chosen from results of es. 
             let chosenCompaniesMap = {};
             let similarCompanyCountDown = 1;
+            let imageUrl = "";
             try {
                 let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
                 existingIdeas = ideas.data;
@@ -973,10 +974,26 @@ module.exports = function(controller) {
                     let userEmailId = store.get(message.user);
                     try {
                         let response = await storeIdea(userEmailId, ideaObj);
+                        let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
+                        imageUrl = snapshotResponse.data.image;
                     }
                     catch(e) {
                         console.log("some error occurred",e);
                     }
+                    bot.reply(message, {
+                        attachments : [
+                            {
+                                "type": "image",
+                                "title": {
+                                    "type": "plain_text",
+                                    "text": "image1",
+                                    "emoji": true
+                                },
+                                "image_url": imageUrl,
+                                "alt_text": "image1"
+                            }
+                        ]  
+                    })
                     next();
                 })
                 

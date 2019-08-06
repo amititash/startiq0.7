@@ -10,6 +10,7 @@ module.exports = function(controller) {
         }
         if(message.intent === 'rank_idea_intent') {
             let idea = "";
+            let imageUrl = "";
             bot.createConversation(message, function(err, convo) {
                 convo.addQuestion({
                     text : "Please enter your idea."
@@ -39,6 +40,22 @@ module.exports = function(controller) {
                     try {
                         let response = await axios.post(url,data);
                         analysis_result = response.data;
+                        let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${analysis_result._id}`);
+                        imageUrl = snapshotResponse.data.image;
+                        bot.reply(message, {
+                            attachments : [
+                                {
+                                    "type": "image",
+                                    "title": {
+                                        "type": "plain_text",
+                                        "text": "image1",
+                                        "emoji": true
+                                    },
+                                    "image_url": imageUrl,
+                                    "alt_text": "image1"
+                                }
+                            ]  
+                        })
                     }   
                     catch(e) {
                         console.log(e.message);
@@ -107,6 +124,21 @@ module.exports = function(controller) {
 
                 convo.addMessage({
                     text : "Startup Size: {{vars.startup_size}}"
+                },"results_thread");
+
+                convo.addMessage({
+                    attachments : [
+                        {
+                            "type": "image",
+                            "title": {
+                                "type": "plain_text",
+                                "text": "image1",
+                                "emoji": true
+                            },
+                            "image_url": imageUrl,
+                            "alt_text": "image1"
+                        }
+                    ]
                 },"results_thread");
 
 
