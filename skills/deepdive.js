@@ -4,6 +4,36 @@ const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.flo
 const elasticSearchService =  require('../utils/elasticsearch');
 
 
+
+const storeIdea = async (userEmailId, ideaObj) => {
+    return new Promise( async(resolve, reject) => {
+        let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+        let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
+        let response = null;
+        ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
+        ideaObj.ideaOwner = userEmailId;
+        let data = ideaObj;
+        let mailData = {
+            to : [userEmailId],
+            from : "engineering@startiq.org",
+            subject : "Test",
+            body : JSON.stringify(data)
+        }
+        console.log("data to save", data);
+        try {
+            response = await axios.post(url,data);
+            await axios.post(mailUrl, mailData);
+        }
+        catch(e) {
+            console.log("some error occurred",e);
+            reject(e);
+        }
+        resolve(response);
+    })
+}
+
+
+
 module.exports = function(controller) {
     controller.on('direct_message,direct_mention, interactive_message_callback', async function(bot, message) {
 
@@ -16,10 +46,10 @@ module.exports = function(controller) {
         if(message.intent === "deepdive_intent") {
             let existingIdeas = [];
             let existingIdeasMap = {};
-            let existingIdeasIndex = 1;
             let ideaByFundabilityMap = {};
             let ideaByFreshnessMap = {};
             let ideaByRecentMap = {};
+            let ideaByKeywordMap = {};
             let attachment = [];
             let ideaCategoriesMap = {};
             let similarCompaniesMap = {};
@@ -82,7 +112,7 @@ module.exports = function(controller) {
                         {
                             pattern : "5",
                             callback : function(res, convo) {
-                                convo.gotoThread("all_ideas_thread");
+                                convo.gotoThread("ideas_by_keyword_thread");
                                 convo.next();
                             }
                         },
@@ -144,30 +174,7 @@ module.exports = function(controller) {
                 "all_ideas_thread")
 
 
-                convo.addQuestion({
-                    text: `${deepdive_replies["what_is_the_idea"]["question"]}`
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            ideaObj.ideaDescription = res.text;
-                            ideaObj.ideaName = res.text.slice(0,200);
-                            convo.gotoThread("idea_selected_thread");
-                            convo.next();
-                        }
-                    }
-                ],
-                {},
-                "default"
-                );
+                
 
 
                 convo.beforeThread("rank_by_fundability_thread", async function(convo, next) {
@@ -184,7 +191,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFundabilityMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription} (Fundability Score: ${element.fundability})\n`    
+                        ideaString += `${index+1}. (Fundability Score: ${element.fundability*100}%) ${element.ideaDescription} \n`    
                     });
                     console.log("Idea by fundability map", ideaByFundabilityMap);
                     convo.setVar("ideasByFundability" , ideaString)
@@ -242,7 +249,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFreshnessMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription} (Freshness Score: ${element.freshness})\n`    
+                        ideaString += `${index+1}. ${element.ideaDescription} (Freshness Score: ${element.freshness*100}%)\n`    
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
@@ -347,6 +354,117 @@ module.exports = function(controller) {
                 {},
                 "rank_by_recent_thread");
 
+                convo.addQuestion({
+                    text : "Please enter keywords for your idea"
+                },
+                [
+                    {
+                        patter : bot.utterances.quit,
+                        callback : function(res, conv) {
+
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : async function(res, convo){
+                            let keyword = res.text;
+                            let url = `${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}&keyword=${keyword}`;
+                            let ideas = [];
+                            try {
+                                let response = await axios.get(url);
+                                ideas = response.data;
+                            }
+                            catch(e){
+                                console.log(e);
+                                convo.gotoThread('error_thread');
+                            }
+                            if(!ideas.length){
+                                bot.reply(message, "No idea found in your binder. Try searching with a different keyword.")
+                                convo.repeat();
+                            }
+                            else {
+                                let ideaString = ""
+                                ideas.forEach( (element,index) => {
+                                    ideaByKeywordMap[`${index+1}`] = element.ideaDescription;
+                                    ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                                });
+                                console.log("Idea by keyword search map", ideaByKeywordMap);
+                                convo.setVar("ideasByKeyword" , ideaString)
+                            }   
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "ideas_by_keyword_thread");
+
+
+
+
+                convo.addQuestion({
+                    text : "Here are the ideas that matched your search. Type the number of the idea you want to develop further.\n{{vars.ideasByKeyword}}",
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            let number = res.text;
+                            let chosenIdea = "";
+                            if(ideaByKeywordMap[`${number}`]){
+                                chosenIdea = ideaByKeywordMap[`${number}`]
+                                console.log(chosenIdea);
+                                ideaObj.ideaDescription = chosenIdea;
+                                ideaObj.ideaName = chosenIdea.slice(0,200);
+                                console.log(ideaObj);
+                                convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
+                            }
+                            else {
+                                bot.reply(message, "Please enter a valid response.");
+                                convo.repeat(); 
+                            }
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "ideas_by_keyword_thread");
+
+
+
+                convo.addQuestion({
+                    text: `${deepdive_replies["what_is_the_idea"]["question"]}`
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            ideaObj.ideaDescription = res.text;
+                            ideaObj.ideaName = res.text.slice(0,200);
+                            convo.gotoThread("idea_selected_thread");
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "default"
+                );
+                
+
 
 
                 /**
@@ -376,7 +494,7 @@ module.exports = function(controller) {
                     })
                     console.log(ideaCategoriesMap,ideaCategoriesString);
                     convo.setVar("idea_categories", ideaCategoriesString);
-
+                    convo.gotoThread("deepdive_completed_thread");
                     next();
                 })
 
@@ -852,27 +970,13 @@ module.exports = function(controller) {
 
 
                 convo.beforeThread("deepdive_completed_thread", async function(convo, next){
-                    let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                    let data = ideaObj;
-                    ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
-                    ideaObj.ideaOwner = store.get(message.user);
-                    let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
-                    let mailData = {
-                        to : [store.get(message.user)],
-                        from : "engineering@startiq.org",
-                        subject : "Test",
-                        body : JSON.stringify(data)
-                    
-                    }
-                    console.log("data to save", data);
+                    let userEmailId = store.get(message.user);
                     try {
-                        let response = await axios.post(url,data);
-                        let mailResponse = await axios.post(mailUrl, mailData);
+                        let response = await storeIdea(userEmailId, ideaObj);
                     }
                     catch(e) {
                         console.log("some error occurred",e);
                     }
-                    console.log("data was saved successfully");
                     next();
                 })
                 
