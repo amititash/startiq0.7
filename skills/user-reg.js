@@ -19,8 +19,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
-                            bot.reply(message, "Incomplete registration. Please register yourself to use the platform.");
-                            convo.stop();
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -51,7 +50,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
-                            convo.gotoThread("save_responses_thread");
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -118,6 +117,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -161,6 +161,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -231,7 +232,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
-
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -286,6 +287,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -324,6 +326,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -363,6 +366,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -402,7 +406,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, conv) {
-                            
+                            convo.gotoThread("early_exit_thread");    
                             convo.next();
                         }
                     },
@@ -425,7 +429,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, convo) {
-
+                            convo.gotoThread("early_exit_thread");
                             convo.next();
                         }
                     },
@@ -463,10 +467,14 @@ module.exports = function(controller) {
                 })
 
                 convo.addMessage({
+                    text : "No problem, You can complete your registration process later."
+                },"early_exit_thread");
+                
+
+                convo.addMessage({
                     text : "That is all for now. If you want more tool to help you understand yourself better as a founder, just type founderquiz in the prompt."
                 },"user_reg_complete_thread");
                 
-
                 convo.activate();
             })
         }
