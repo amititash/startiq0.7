@@ -92,7 +92,7 @@ module.exports = function(controller) {
                     convo.setVar("startup_skills", startupSkillsString);
                     convo.setVar("startup_size", analysis_result.startupSize[0]);
 
-                    convo.setVar("freshness", analysis_result.freshness*100);
+                    convo.setVar("freshness", (analysis_result.freshness*1).toFixed(2));
                     convo.setVar("fundability", Math.round((analysis_result.fundability*100).toFixed(0)));
                     convo.setVar("idea_categories_1", ideaCategories1String);
                     convo.setVar("idea_categories_2", ideaCategories2String);
@@ -101,7 +101,7 @@ module.exports = function(controller) {
                 })
 
                 convo.addMessage({
-                    text : "Freshness : {{vars.freshness}}%\
+                    text : "Freshness : {{vars.freshness}}\
                     Fundability : {{vars.fundability}}%"
                 },"results_thread");
 

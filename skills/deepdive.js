@@ -12,7 +12,7 @@ const storeIdea = async (userEmailId, ideaObj) => {
         let response = null;
         let imageUrl = "";
         let snapshotResponse = null;
-        ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
+        // ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
         ideaObj.ideaOwner = userEmailId;
         let data = ideaObj;
         
@@ -258,7 +258,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFreshnessMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription} (Freshness Score: ${(Math.round(element.freshness*100)).toFixed(0)}%)\n`    
+                        ideaString += `${index+1}. (Freshness Score: ${element.freshness.toFixed(2)}) ${element.ideaDescription} \n`    
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
@@ -517,7 +517,7 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo){
-                            ideaObj.shortName = res.text;
+                            ideaObj.ideaName = res.text;
                             convo.gotoThread("choose_idea_categories_thread");
                             convo.next();
                         }
@@ -763,7 +763,7 @@ module.exports = function(controller) {
                         callback : async function(res, convo) {
                             let similarCompanies = [];
                             let problem = res.text || "";
-                            ideaObj.problemBeingSolved = problem;
+                            ideaObj.problemsSolved = problem;
                             let similarCompaniesString = "";
                             try {
                                 similarCompanies = await elasticSearchService.search(problem);
@@ -818,7 +818,7 @@ module.exports = function(controller) {
                                 }
                             })
                             console.log(chosenCompanies);
-                            convo.transitionTo("add_missed_similar_companies_thread","Looks like you chose some companies from the list. Did I miss any company ? Please enter the url of the company and I'll dig into it.");
+                            convo.gotoThread("add_missed_similar_companies_thread");
                             convo.next();
                         }
                     }  
@@ -828,7 +828,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Please enter the url of company."
+                    text : "Looks like you chose some companies from the list. Did I miss any company ? Please enter the url of the company and I'll dig into it. If there are multiple, enter a comma separated list."
                 },
                 [
                     {
@@ -839,18 +839,24 @@ module.exports = function(controller) {
                         }
                     },
                     {
+                        pattern : "no",
+                        callback : function(res, convo) {
+                            convo.gotoThread("choose_top_competitor_thread");
+                            convo.next();
+                        }
+                    },
+                    {
                         default : true,
                         callback : function(res, convo) {
-                            let company = res.text.slice(res.text.indexOf('|')+1).slice(0,-1);
-                            chosenCompanies.push(company);
-                            console.log("Similar companies chosen: ",chosenCompanies);
-                            if(similarCompanyCountDown){
-                                similarCompanyCountDown --;
-                                convo.repeat();
-                            }
-                            else {
-                                convo.gotoThread("choose_top_competitor_thread");
-                            }
+                            let companies = res.text.split(',');
+                            companies.forEach( company => {
+                                console.log("ZZZZZZZZ", company);
+                                let companyName = company.slice(company.indexOf('|')+1).slice(0,-1);
+                                console.log("ZZZZZZZZZZZ", companyName);
+                                chosenCompanies.push(companyName);
+                            })
+                            console.log("final companies chosen: ",chosenCompanies);
+                            convo.gotoThread("choose_top_competitor_thread");
                             convo.next();
                         }
                     }
@@ -861,7 +867,7 @@ module.exports = function(controller) {
 
                 convo.beforeThread("choose_top_competitor_thread", function(convo, next) {
                     console.log("finally chosen companies", chosenCompanies);
-                    ideaObj.chosenCompanies = chosenCompanies;
+                    ideaObj.competitors = chosenCompanies;
                     let chosenCompaniesString = "";
                     chosenCompanies.forEach( (company , index) => {
                         chosenCompaniesMap[`${index+1}`] = company;
@@ -918,7 +924,7 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            ideaObj.howDifferentFromTopComp = res.text;
+                            ideaObj.competitiveDifferentiation = res.text;
                             convo.next();
                         }
                     }   
@@ -945,7 +951,7 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            ideaObj.howOfferBetterQualityProd = res.text;
+                            ideaObj.newCapabilities = res.text;
                             convo.next();
                         }
                     }
@@ -968,7 +974,6 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             ideaObj.revenueModel = res.text;
-                            convo.gotoThread("deepdive_completed_thread");
                             convo.next();
                         }
                     }
@@ -976,12 +981,16 @@ module.exports = function(controller) {
                 {},
                 "chosen_top_competitor_thread")
 
+                convo.addMessage({
+                    text : "Hang on a sec, while I analyse your responses using my AI powers...",
+                    action : "deepdive_completed_thread"
+                },"chosen_top_competitor_thread");
+
 
                 convo.beforeThread("deepdive_completed_thread", async function(convo, next){
                     let userEmailId = store.get(message.user);
                     try {
                         let response = await storeIdea(userEmailId, ideaObj);
-                        console.log("XXXXXXXXXXXx", response.imageUrl);
                         bot.reply(message, {
                             attachments : [
                                 {
