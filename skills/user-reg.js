@@ -395,6 +395,28 @@ module.exports = function(controller) {
                     next();
                 })
 
+                convo.addQuestion({
+                    text : "Can you please provide us your linkedin/medium/angellist profile?"
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, conv) {
+                            
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            userInfo.bio = res.text;
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "connections_thread");
+
 
                 convo.addQuestion({
                     text : "Finally do you know any people that fit the following description ? Just type the numbers associated with their roles separted by commas.\n1. Full Stack Developer\n2. Data Scientist\n3. Manager\n4. Designer\n5. Marketing maven"
