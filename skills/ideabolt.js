@@ -93,7 +93,7 @@ module.exports = function(controller) {
                     convo.setVar("startup_size", analysis_result.startupSize[0]);
 
                     convo.setVar("freshness", analysis_result.freshness*100);
-                    convo.setVar("fundability", analysis_result.fundability*100);
+                    convo.setVar("fundability", Math.round((analysis_result.fundability*100).toFixed(0)));
                     convo.setVar("idea_categories_1", ideaCategories1String);
                     convo.setVar("idea_categories_2", ideaCategories2String);
                     convo.setVar("idea_categories_3", ideaCategories3String);
@@ -111,12 +111,12 @@ module.exports = function(controller) {
                 
 
                 convo.addMessage({
-                    text : "Categories 1\n{{vars.idea_categories_2}}\n"
+                    text : "Categories :\n{{vars.idea_categories_2}}\n"
                 },"results_thread");
 
-                convo.addMessage({
-                    text : "Categories 2\n{{vars.idea_categories_3}}\n"
-                },"results_thread");
+                // convo.addMessage({
+                //     text : "Categories 2\n{{vars.idea_categories_3}}\n"
+                // },"results_thread");
 
                 convo.addMessage({
                     text : "Startup Skills:\n{{vars.startup_skills}}"
@@ -126,20 +126,20 @@ module.exports = function(controller) {
                     text : "Startup Size: {{vars.startup_size}}"
                 },"results_thread");
 
-                convo.addMessage({
-                    attachments : [
-                        {
-                            "type": "image",
-                            "title": {
-                                "type": "plain_text",
-                                "text": "image1",
-                                "emoji": true
-                            },
-                            "image_url": imageUrl,
-                            "alt_text": "image1"
-                        }
-                    ]
-                },"results_thread");
+                // convo.addMessage({
+                //     attachments : [
+                //         {
+                //             "type": "image",
+                //             "title": {
+                //                 "type": "plain_text",
+                //                 "text": "image1",
+                //                 "emoji": true
+                //             },
+                //             "image_url": imageUrl,
+                //             "alt_text": "image1"
+                //         }
+                //     ]
+                // },"results_thread");
 
 
                 convo.addMessage({

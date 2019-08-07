@@ -202,7 +202,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these technologies do you know?\n1. Javascript, Node etc.\n2. Ruby etc.\n3. C++ etc."
+                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. Javascript, Node etc.\n2. Ruby etc.\n3. C++ etc."
                 },
                 [
                     {
@@ -240,7 +240,7 @@ module.exports = function(controller) {
                 })
 
                 convo.addQuestion({
-                    text : "Awesome. Let's dig a bit deeper into your skills. Which of these technologies do you know ?\n1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
+                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know ?\n1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
                 },
                 [
                     {
@@ -279,7 +279,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Awesome. Let's dig a bit deeper into your skills. Which of these technologies do you know?\n1. SEO and Digital advertising\n2. B2B and SaaS relationships\n3. Sales team handling and experience\n4. Consumer Internet marketing\n"
+                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. SEO and Digital advertising\n2. B2B and SaaS relationships\n3. Sales team handling and experience\n4. Consumer Internet marketing\n"
                 },
                 [
                     {

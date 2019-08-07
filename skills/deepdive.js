@@ -10,25 +10,33 @@ const storeIdea = async (userEmailId, ideaObj) => {
         let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
         let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
         let response = null;
+        let imageUrl = "";
+        let snapshotResponse = null;
         ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
         ideaObj.ideaOwner = userEmailId;
         let data = ideaObj;
-        let mailData = {
-            to : [userEmailId],
-            from : "engineering@startiq.org",
-            subject : "Test",
-            body : JSON.stringify(data)
-        }
+        
         console.log("data to save", data);
         try {
             response = await axios.post(url,data);
+            snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
+            imageUrl = snapshotResponse.data.image;
+            let mailData = {
+                to : [userEmailId],
+                from : "engineering@startiq.org",
+                subject : "Test",
+                body : `Here is the link to the report : ${imageUrl}`
+            }
             await axios.post(mailUrl, mailData);
         }
         catch(e) {
             console.log("some error occurred",e);
             reject(e);
         }
-        resolve(response);
+        resolve({
+            success : true,
+            imageUrl : imageUrl
+        });
     })
 }
 
@@ -72,7 +80,7 @@ module.exports = function(controller) {
 
                 if(existingIdeas.length > 0) {
                     convo.addQuestion({
-                        text : `It looks like you have ${existingIdeas.length} ideas in your binder. How would you like me to organize your ideas ?\n1. Fundability (our estimate of how fundable the idea is based based on the recent dealflow)\n2. Freshness(whether the idea you are describing looks like other 'hot' ideas out there)\n3. Most recently entered\n4. Product/service category\n5. Search by term`
+                        text : `It looks like you have ${existingIdeas.length} ideas in your binder. How would you like me to organize your ideas?\n1. Fundability (our estimate of how fundable the idea is based on the recent deal flow)\n2. Freshness (whether the idea you are describing looks like other 'hot' ideas out there)\n3. Most recently entered\n4. Product/service category\n5. Search by term`
                     },
                     [
                         {
@@ -141,7 +149,7 @@ module.exports = function(controller) {
                 });
 
                 convo.addQuestion({
-                    text : "Here are your ideas:\n{{vars.all_existing_ideas}}\nType the number of the idea you want to develop further."
+                    text : "Here are your ideas:\n{{{vars.all_existing_ideas}}}\nType the number of the idea you want to develop further."
                 },
                 [
                     {
@@ -192,7 +200,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFundabilityMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. (Fundability Score: ${element.fundability*100}%) ${element.ideaDescription} \n`    
+                        ideaString += `${index+1}. (Fundability Score: ${(Math.round(element.fundability*100)).toFixed(0)}%) ${element.ideaDescription} \n`    
                     });
                     console.log("Idea by fundability map", ideaByFundabilityMap);
                     convo.setVar("ideasByFundability" , ideaString)
@@ -201,7 +209,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are top ideas by fundability score. Type the number of the idea you want to develop further.\n{{vars.ideasByFundability}}\n",
+                    text : "Here are the top ideas by fundability score. Type the number of the idea you want to develop further.\n{{{vars.ideasByFundability}}}\n",
                 },
                 [
                     {
@@ -250,7 +258,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFreshnessMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription} (Freshness Score: ${element.freshness*100}%)\n`    
+                        ideaString += `${index+1}. ${element.ideaDescription} (Freshness Score: ${(Math.round(element.freshness*100)).toFixed(0)}%)\n`    
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
@@ -260,7 +268,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are top ideas by freshness score.Type the number of the idea you want to develop further.\n{{vars.ideasByFreshness}}\n",
+                    text : "Here are the top ideas by freshness score. Type the number of the idea you want to develop further.\n{{{vars.ideasByFreshness}}}\n",
                 },
                 [
                     {
@@ -321,7 +329,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are your most recent ideas. Type the number of the idea you want to develop further.\n{{vars.most_recent_ideas}}",
+                    text : "Here are your most recent ideas. Type the number of the idea you want to develop further.\n{{{vars.most_recent_ideas}}}",
                 },
                 [
                     {
@@ -356,7 +364,7 @@ module.exports = function(controller) {
                 "rank_by_recent_thread");
 
                 convo.addQuestion({
-                    text : "Please enter keywords for your idea"
+                    text : "Please enter keywords for your idea."
                 },
                 [
                     {
@@ -404,7 +412,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the ideas that matched your search. Type the number of the idea you want to develop further.\n{{vars.ideasByKeyword}}",
+                    text : "Here are the ideas that matched your search. Type the number of the idea you want to develop further.\n{{{vars.ideasByKeyword}}}",
                 },
                 [
                     {
@@ -495,16 +503,15 @@ module.exports = function(controller) {
                     })
                     console.log(ideaCategoriesMap,ideaCategoriesString);
                     convo.setVar("idea_categories", ideaCategoriesString);
-                    convo.gotoThread("deepdive_completed_thread");
                     next();
                 })
 
                 convo.addMessage({
-                    text : "Lets begin by giving your product or service a name you can remember?"
+                    text : "Let's begin by giving your product or service a name you can remember?"
                 },"idea_selected_thread");
 
                 convo.addQuestion({
-                    text : "Just enter a one or two word name for your idea..."
+                    text : "Just enter a one or two-word name for your idea..."
                 },
                 [
                     {
@@ -520,11 +527,11 @@ module.exports = function(controller) {
                 "idea_selected_thread");
 
                 convo.addMessage({
-                    text : "Ok, great. Based  on how you described the idea it looks like your product fits one of these product catergories. If any of these are relevant, enter them below and separate each number by a comma(eg. '1,2,4')"
+                    text : "Ok, great. Based on how you described the idea it looks like your product fits one of these product categories. If any of these are relevant, enter them below and separate each number by a comma(eg. '1,2,4')"
                 },"choose_idea_categories_thread");
 
                 convo.addQuestion({
-                    text : "{{vars.idea_categories}}"
+                    text : "{{{vars.idea_categories}}}"
                 },
                 [
                     {
@@ -556,7 +563,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "A well thought-out business idea answers five big questions well. We'll help you answer them and provide some data-driven insights to help you along. Lets start.",
+                    text : "A well-thought-out business idea answers five big questions well. We'll help you answer them and provide some data-driven insights to help you along. Let's start.",
                     attachments:[
                         {
                             title: ` Are you selling a...`,
@@ -693,7 +700,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Got it! You are selling to a {{vars.chosen_customer_segment}}. Can you describe the industry or segment that this {{vars.chosen_customer_segment}} is in? (e.g. Private schools 'sell' to parents, but children 'use' the service.)"
+                    text : "Got it! You are selling to a {{{vars.chosen_customer_segment}}}. Can you describe the industry or segment that this {{{vars.chosen_customer_segment}}} is in? (e.g. Private schools 'sell' to parents, but children 'use' the service.)"
                 },
                 [
                     {
@@ -717,7 +724,7 @@ module.exports = function(controller) {
                 "choose_idea_categories_thread");
 
                 convo.addQuestion({
-                    text : "Who are the end users of your product ?"
+                    text : "Who are the end-users of your product?"
                 },
                 [
                     {
@@ -741,7 +748,7 @@ module.exports = function(controller) {
                 "choose_idea_categories_thread");
 
                 convo.addQuestion({
-                    text : "What problem are you solving for this customer? Try to be concrete about it? (see here for example of a strong problem statement)"
+                    text : "What problem are you solving for this customer? Try to be concrete about it? (see here for an example of a strong problem statement)"
                 },
                 [
                     {
@@ -789,7 +796,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Fantastic! I did a few searches and found some companies that describe themselves in a way similar to you...\n{{vars.similar_companies}}\nCheck these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer."
+                    text : "Fantastic! I did a few searches and found some companies that describe themselves in a way similar to you...\n{{{vars.similar_companies}}}\nCheck these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer."
                 },
                 [
                     {
@@ -858,7 +865,7 @@ module.exports = function(controller) {
                     let chosenCompaniesString = "";
                     chosenCompanies.forEach( (company , index) => {
                         chosenCompaniesMap[`${index+1}`] = company;
-                        chosenCompaniesString += `${index+1} ${company}\n`
+                        chosenCompaniesString += `${index+1}. ${company}\n`
                     })
                     convo.setVar("finally_chosen_competitors", chosenCompaniesString);
                     next();
@@ -866,7 +873,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "OK. Which one of these is your top competitor?\n{{vars.finally_chosen_competitors}}"
+                    text : "Ok. Which one of these is your top competitor?\n{{{vars.finally_chosen_competitors}}}"
                 },
                 [
                     {
@@ -898,7 +905,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "How are you different from {{vars.top_competitor}} ? "
+                    text : "How are you different from {{{vars.top_competitor}}} ? "
                 },
                 [
                     {
@@ -925,7 +932,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "What do you have(skills, data, or something else) that will allow you to offer a higher quality product or one at lower cost than others ?"
+                    text : "What do you have(skills, data, or something else) that will allow you to offer a higher quality product or one at a lower cost than others?"
                 },
                 [
                     {
@@ -947,7 +954,7 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread");
 
                 convo.addQuestion({
-                    text : "Fantastic! Final question is about your business model. How will you make money ?"
+                    text : "Fantastic! The final question is about your business model. How will you make money?"
                 },
                 [
                     {
@@ -974,37 +981,37 @@ module.exports = function(controller) {
                     let userEmailId = store.get(message.user);
                     try {
                         let response = await storeIdea(userEmailId, ideaObj);
-                        let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
-                        imageUrl = snapshotResponse.data.image;
+                        console.log("XXXXXXXXXXXx", response.imageUrl);
+                        bot.reply(message, {
+                            attachments : [
+                                {
+                                    "type": "image",
+                                    "title": {
+                                        "type": "plain_text",
+                                        "text": "image1",
+                                        "emoji": true
+                                    },
+                                    "image_url": response.imageUrl,
+                                    "alt_text": "image1"
+                                }
+                            ]  
+                        })
                     }
                     catch(e) {
                         console.log("some error occurred",e);
                     }
-                    bot.reply(message, {
-                        attachments : [
-                            {
-                                "type": "image",
-                                "title": {
-                                    "type": "plain_text",
-                                    "text": "image1",
-                                    "emoji": true
-                                },
-                                "image_url": imageUrl,
-                                "alt_text": "image1"
-                            }
-                        ]  
-                    })
                     next();
                 })
+
                 
 
                 convo.addMessage({
-                    text : "Fantastic. All done. We've mailed you a link to the report. Keep checking back on the link because as we get information related to your idea, we'll update you!"
+                    text : "All done. We've mailed you a link to the report. Keep checking back on the link because as we get information related to your idea, we'll update you!"
                 },"deepdive_completed_thread");
 
 
                 convo.addMessage({
-                    text : "Ok, thats perfectly fine. You can always add an additional idea by typing 'ideastorm' or develop one of your ideas further by 'deepdive'."
+                    text : "Ok, that's perfectly fine. You can always add an additional idea by typing 'ideabolt' (one) or 'ideastorm' (many) or develop one of your ideas further by 'deepdive'."
                 },"early_exit_thread");
 
                 convo.activate();

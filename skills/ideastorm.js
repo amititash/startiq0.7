@@ -18,18 +18,17 @@ module.exports = function(controller) {
                 
                 bot.createConversation(message, function(err, convo) {
 
-
-                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
+                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*1)]["statement"])
     
                     convo.addQuestion({
-                        text : "{{vars.ideastorm_reply}}"
+                        text : "{{{vars.ideastorm_reply}}}"
                     },
                     [
                         {
                             pattern : bot.utterances.quit,
                             callback : function(res, convo) {
                                 convo.say({
-                                    text : "Ok, thats perfectly fine. You can always add an additional idea by typing 'ideastorm' or develop one of your ideas further by 'deepdive'."
+                                    text : "Ok, that's perfectly fine. You can always add an additional idea by typing 'ideabolt' (one) or 'ideastorm' (many) or develop one of your ideas further by 'deepdive'."
                                 })
                                 convo.next();
                             }
@@ -50,7 +49,7 @@ module.exports = function(controller) {
                                         convo.gotoThread("idea_input_thread");
     
                                         //Here, we are randomly choosing a particular response from the chosen set of response.
-                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
+                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*1)]["statement"])
     
                                         convo.next();
                                     })
@@ -59,7 +58,7 @@ module.exports = function(controller) {
                                         convo.gotoThread("idea_input_thread");
     
                                         //Here, we are randomly choosing a particular response from the chosen set of response.
-                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*3)]["statement"])
+                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*1)]["statement"])
                                         
                                         convo.next(e);
                                     })
@@ -80,14 +79,14 @@ module.exports = function(controller) {
                     })
         
                     convo.ask({
-                        text: "Type your first idea below. Go ahead. Our algorithms will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further. Let's start.",
+                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further. Let's start.",
                     },
                     [
                         {
                             pattern : bot.utterances.quit,
                             callback : function( res, convo) {
                                 convo.sayFirst({
-                                    text : "Ok, thats perfectly fine. You can always add an additional idea by typing 'ideastorm' or develop one of your ideas further by 'deepdive'."
+                                    text : "Ok, that's perfectly fine. You can always add an additional idea by typing 'ideabolt' (one) or 'ideastorm' (many) or develop one of your ideas further by 'deepdive'."
                                 })
                                 convo.next();
                             }
