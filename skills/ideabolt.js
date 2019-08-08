@@ -90,9 +90,23 @@ module.exports = function(controller) {
                     })
 
                     convo.setVar("startup_skills", startupSkillsString);
-                    convo.setVar("startup_size", analysis_result.startupSize[0]);
+                    convo.setVar("competitor_size", analysis_result.competitorSize[0]);
 
-                    convo.setVar("freshness", (analysis_result.freshness*1).toFixed(2));
+                    let ideaFreshness = "";
+
+                    switch(analysis_result.freshness_criteria){
+                        case "very_new_idea" : 
+                            ideaFreshness = "Very new idea, Are you sure you are not entering too early into the market?"
+                            break;
+                        case "moderately_new_idea" : 
+                            ideaFreshness = "This is fairly new, but probably not much competition yet. So perhaps a good time."
+                            break;
+                        case "old_idea" : 
+                            ideaFreshness = "Old idea. This has been done before. Please check the competitive landscape and be very sure of your moat."
+                            break;
+                    }
+
+                    convo.setVar("freshness", ideaFreshness);
                     convo.setVar("fundability", Math.round((analysis_result.fundability*100).toFixed(0)));
                     convo.setVar("idea_categories_1", ideaCategories1String);
                     convo.setVar("idea_categories_2", ideaCategories2String);
@@ -100,9 +114,10 @@ module.exports = function(controller) {
                     next();
                 })
 
+                
+
                 convo.addMessage({
-                    text : "Freshness : {{vars.freshness}}\
-                    Fundability : {{vars.fundability}}%"
+                    text : "Freshness: {{vars.freshness}}\nFundability: {{vars.fundability}}%"
                 },"results_thread");
 
                 // convo.addMessage({
@@ -119,11 +134,11 @@ module.exports = function(controller) {
                 // },"results_thread");
 
                 convo.addMessage({
-                    text : "Startup Skills:\n{{vars.startup_skills}}"
+                    text : "Startup skills:\n{{vars.startup_skills}}"
                 },"results_thread");
 
                 convo.addMessage({
-                    text : "Startup Size: {{vars.startup_size}}"
+                    text : "Competitor size: {{vars.competitor_size}}"
                 },"results_thread");
 
                 // convo.addMessage({

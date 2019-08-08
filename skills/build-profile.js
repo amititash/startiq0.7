@@ -18,7 +18,7 @@ module.exports = function(controller) {
                     text : "We can begin by developing a quick assessment of you as an entrepreneur or jump right into generating ideas.",
                     attachments:[
                         {
-                            title: `What would you prefer ?`,
+                            title: `What would you prefer?`,
                             callback_id: 'ideate_or_build_profile',
                             attachment_type: 'default',
                             actions: [
@@ -76,11 +76,11 @@ module.exports = function(controller) {
                 },"build_profile_thread");
 
                 convo.addMessage({
-                    text : "Lets begin with your goals. Which of the following statements best describe your intended business?"
+                    text : "Let's begin with your goals. Which of the following statements best describes your intended business?"
                 },"build_profile_thread");
                 
                 convo.addQuestion({
-                    text : "I want to build:\n1. A sustainable business that supports me and my family($100k to 1m revenue).\n2. A company that can reach a $20 to $50 million dollar evaluation.\n3. A large enterprise valued at more that $50m (yes, that included unicorns with $1b plus valuations)."
+                    text : "I want to build:\n1. A sustainable business that supports me and my family ($100k to 1m revenue).\n2. A business that can reach a $20 to $50 million dollar valuation.\n3. A large business valued at more than $50M (yes, that includes unicorns with $1B plus valuations)."
                 },
                 [
                     {
@@ -93,21 +93,21 @@ module.exports = function(controller) {
                     {
                         pattern : "1",
                         callback : function(res, convo) {
-                            userInfo.founderGoal = "A sustainable business that supports me and my family($100k to 1m revenue)" 
+                            userInfo.founderGoal = "A sustainable business that supports me and my family ($100k to 1m revenue)" 
                             convo.next();
                         }
                     },
                     {
                         pattern : "2",
                         callback : function(res, convo) {
-                            userInfo.founderGoal = "A company that can reach a $20 to $50 million dollar evaluation."
+                            userInfo.founderGoal = "A business that can reach a $20 to $50 million dollar valuation."
                             convo.next();
                         }
                     },
                     {
                         pattern : "3",
                         callback : function(res, convo) {
-                            userInfo.founderGoal = "A large enterprise valued at more that $50m (yes, that included unicorns with $1b plus valuations)."
+                            userInfo.founderGoal = "A large business valued at more than $50M (yes, that includes unicorns with $1B plus valuations)."
                             convo.next();
                         }
                     },
@@ -127,13 +127,13 @@ module.exports = function(controller) {
                     text : "Your skills matter too. Here are three common profiles of people who build tech startups.",
                     attachments:[
                         {
-                            title: ` Do any of these sound like you? If not, type more for a few additional profiles.`,
+                            title: ` Do any of these descriptions sound like you? If not, type more for a few additional profiles.`,
                             callback_id: 'common_profiles',
                             attachment_type: 'default',
                             actions: [
                                 {
                                     "name":"full stack developer",
-                                    "text": "Full Stack Developer",
+                                    "text": "Full-Stack developer",
                                     "value": "full_stack_developer",
                                     "type": "button",
                                 },
@@ -245,7 +245,7 @@ module.exports = function(controller) {
                 })
 
                 convo.addQuestion({
-                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know ?\n1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
+                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
                 },
                 [
                     {
@@ -316,8 +316,8 @@ module.exports = function(controller) {
 
 
                 convo.beforeThread("connections_thread", function(convo, next) {
-                    connectionsMap["1"] = "Full Stack Developer";
-                    connectionsMap["2"] = "Data Scientist";
+                    connectionsMap["1"] = "Full-Stack Developer";
+                    connectionsMap["2"] = "Data scientist";
                     connectionsMap["3"] = "Manager";
                     connectionsMap["4"] = "Designer";
                     connectionsMap["5"] = "Marketing maven";
@@ -326,7 +326,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Can you please provide us your linkedin/medium/angellist profile?"
+                    text : "OK, great. Can you provide a link to your LinkedIn profile?"
                 },
                 [
                     {
@@ -349,7 +349,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Finally do you know any people that fit the following description ? Just type the numbers associated with their roles separted by commas.\n1. Full Stack Developer\n2. Data Scientist\n3. Manager\n4. Designer\n5. Marketing maven"
+                    text : "Finally, do you know any people that fit the following description? Just type the numbers associated with their roles separated by commas.\n1. Full-Stack developer\n2. Data scientist\n3. Manager\n4. Designer\n5. Marketing maven"
                 },
                 [
                     {
@@ -397,7 +397,7 @@ module.exports = function(controller) {
                 },"early_exit_thread");
 
                 convo.addMessage({
-                    text : "That is all for now. If you want more tool to help you understand yourself better as a founder, just type founderquiz in the prompt."
+                    text : "That is all for now. I have a good sense of your skills. If you want more tools to help you understand yourself better as a founder, just type 'founder'. Otherwise, you can start developing ideas by typing 'ideastorm' in the prompt."
                 },"user_reg_complete_thread");
                 
 

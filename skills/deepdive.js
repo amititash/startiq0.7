@@ -80,7 +80,7 @@ module.exports = function(controller) {
 
                 if(existingIdeas.length > 0) {
                     convo.addQuestion({
-                        text : `It looks like you have ${existingIdeas.length} ideas in your binder. How would you like me to organize your ideas?\n1. Fundability (our estimate of how fundable the idea is based on the recent deal flow)\n2. Freshness (whether the idea you are describing looks like other 'hot' ideas out there)\n3. Most recently entered\n4. Product/service category\n5. Search by term`
+                        text : `It looks like you have ${existingIdeas.length} ideas in your binder. How would you like me to display your ideas?\n1. Fundability (our estimate of how fundable the idea is based on the recent deal flow)\n2. Freshness (whether the idea you are describing looks like other 'hot' ideas out there)\n3. Most recently entered idea\n4. Product/service category\n5. Search by term`
                     },
                     [
                         {
@@ -368,9 +368,11 @@ module.exports = function(controller) {
                 },
                 [
                     {
-                        patter : bot.utterances.quit,
+                        pattern : bot.utterances.quit,
                         callback : function(res, conv) {
-
+                            console.log("here");
+                            convo.gotoThread("early_exit_thread");
+                            console.log("there");
                             convo.next();
                         }
                     },
@@ -490,7 +492,7 @@ module.exports = function(controller) {
                         ideaDescription = ideaObj.ideaDescription;
                         let url = `${process.env.CLASSIFIER_API_URL}/categories?idea=${ideaDescription}`
                         let response = await axios.get(url);
-                        ideaCategories = response.data["PRED"].slice(0,5);
+                        ideaCategories = response.data["PRED"].slice(0,10);
                     }
                     catch(e) {
                         console.log(e);
@@ -566,7 +568,7 @@ module.exports = function(controller) {
                     text : "A well-thought-out business idea answers five big questions well. We'll help you answer them and provide some data-driven insights to help you along. Let's start.",
                     attachments:[
                         {
-                            title: ` Are you selling a...`,
+                            title: `Are you selling a...`,
                             callback_id: 'product_or_service',
                             attachment_type: 'default',
                             actions: [
@@ -626,13 +628,13 @@ module.exports = function(controller) {
                     text : "Most businesses serve one of these customer segments.",
                     attachments:[
                         {
-                            title: `Which type of customer do you serve?`,
+                            title: `Which type of customers do you serve?`,
                             callback_id: 'customer_segment',
                             attachment_type: 'default',
                             actions: [
                                 {
                                     "name":"business",
-                                    "text": "Business(i.e., B2B)",
+                                    "text": "Business (i.e., B2B)",
                                     "value": "business",
                                     "type": "button",
                                 },
@@ -779,7 +781,7 @@ module.exports = function(controller) {
                             if(!similarCompanies.length){
                                 similarCompaniesString = "No similar companies found."
                                 convo.setVar("similar_companies", similarCompaniesString);
-                                convo.transitionTo("add_missed_similar_companies_thread", "We did not find any similar companies. Did I miss any company , please enter the url of the company and I will dig into it.")
+                                convo.transitionTo("add_missed_similar_companies_thread", "I did not find any similar companies. Did I miss any company? Please enter the name of the companies. If there are multiple, enter a comma-separated list.")
                             }
                             else {
                                 convo.setVar("similar_companies", similarCompaniesString);
@@ -828,7 +830,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Looks like you chose some companies from the list. Did I miss any company ? Please enter the url of the company and I'll dig into it. If there are multiple, enter a comma separated list."
+                    text : "Looks like you chose some companies from the list. Did I miss any company? Please enter the name of the companies. If there are multiple, enter a comma-separated list."
                 },
                 [
                     {
@@ -911,7 +913,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "How are you different from {{{vars.top_competitor}}} ? "
+                    text : "How are you different from {{{vars.top_competitor}}}?"
                 },
                 [
                     {
@@ -938,7 +940,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "What do you have(skills, data, or something else) that will allow you to offer a higher quality product or one at a lower cost than others?"
+                    text : "What do you have (skills, data, or something else) that will allow you to offer a higher quality product or one at a lower cost than others?"
                 },
                 [
                     {
@@ -982,7 +984,7 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread")
 
                 convo.addMessage({
-                    text : "Hang on a sec, while I analyse your responses using my AI powers...",
+                    text : "Hang on a sec, while I analyze your responses using my AI powers...",
                     action : "deepdive_completed_thread"
                 },"chosen_top_competitor_thread");
 
@@ -1020,7 +1022,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Ok, that's perfectly fine. You can always add an additional idea by typing 'ideabolt' (one) or 'ideastorm' (many) or develop one of your ideas further by 'deepdive'."
+                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
                 },"early_exit_thread");
 
                 convo.activate();

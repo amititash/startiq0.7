@@ -18,7 +18,7 @@ module.exports = function(controller) {
                 
                 bot.createConversation(message, function(err, convo) {
 
-                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*1)]["statement"])
+                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
     
                     convo.addQuestion({
                         text : "{{{vars.ideastorm_reply}}}"
@@ -28,7 +28,7 @@ module.exports = function(controller) {
                             pattern : bot.utterances.quit,
                             callback : function(res, convo) {
                                 convo.say({
-                                    text : "Ok, that's perfectly fine. You can always add an additional idea by typing 'ideabolt' (one) or 'ideastorm' (many) or develop one of your ideas further by 'deepdive'."
+                                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
                                 })
                                 convo.next();
                             }
@@ -49,7 +49,7 @@ module.exports = function(controller) {
                                         convo.gotoThread("idea_input_thread");
     
                                         //Here, we are randomly choosing a particular response from the chosen set of response.
-                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*1)]["statement"])
+                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
     
                                         convo.next();
                                     })
@@ -58,7 +58,7 @@ module.exports = function(controller) {
                                         convo.gotoThread("idea_input_thread");
     
                                         //Here, we are randomly choosing a particular response from the chosen set of response.
-                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*1)]["statement"])
+                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                                         
                                         convo.next(e);
                                     })
@@ -75,7 +75,7 @@ module.exports = function(controller) {
 
 
                     convo.say({
-                        text : "A good idea isn't too long or too short. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
+                        text : "A good idea description isn't too long or too short. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
                     })
         
                     convo.ask({
@@ -86,7 +86,7 @@ module.exports = function(controller) {
                             pattern : bot.utterances.quit,
                             callback : function( res, convo) {
                                 convo.sayFirst({
-                                    text : "Ok, that's perfectly fine. You can always add an additional idea by typing 'ideabolt' (one) or 'ideastorm' (many) or develop one of your ideas further by 'deepdive'."
+                                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
                                 })
                                 convo.next();
                             }
