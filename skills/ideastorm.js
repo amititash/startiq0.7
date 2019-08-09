@@ -27,6 +27,7 @@ module.exports = function(controller) {
                         {
                             pattern : bot.utterances.quit,
                             callback : function(res, convo) {
+                                console.log("cancelled");
                                 convo.say({
                                     text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
                                 })
@@ -36,6 +37,11 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : function(res, convo) {
+                                if(res.text.length < 150){
+                                    bot.reply(message, "An idea description should contain a minimum of 150 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    convo.repeat();
+                                    return ;
+                                }
                                 let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
                                 let data = {
                                     ideaOwner : store.get(message.user),
@@ -94,6 +100,11 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : function(res, convo) {
+                                if(res.text.length < 150){
+                                    bot.reply(message, "An idea description should contain a minimum of 150 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    convo.repeat();
+                                    return ;
+                                }
                                 let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
                                 let data = {
                                     ideaOwner : store.get(message.user),
