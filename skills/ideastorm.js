@@ -83,9 +83,10 @@ module.exports = function(controller) {
                     convo.say({
                         text : "A good idea description isn't too long or too short. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
                     })
+
         
                     convo.ask({
-                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further. Let's start.",
+                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further. Let's start.\nIf you want to stop, please type 'cancel'.",
                     },
                     [
                         {
@@ -100,8 +101,8 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : function(res, convo) {
-                                if(res.text.length < 150){
-                                    bot.reply(message, "An idea description should contain a minimum of 150 characters. If you want to stop entering ideas, type 'cancel'.")
+                                if(res.text.length < 140){
+                                    bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
                                     convo.repeat();
                                     return ;
                                 }

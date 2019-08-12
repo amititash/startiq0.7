@@ -14,10 +14,11 @@ const storeIdea = async (userEmailId, ideaObj) => {
         let snapshotResponse = null;
         // ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
         ideaObj.ideaOwner = userEmailId;
-        let data = ideaObj;
         
-        console.log("data to save", data);
+        
         try {
+            ideaObj.predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser) * Number(ideaObj.userPercentage)/100 ; 
+            let data = ideaObj;
             response = await axios.post(url,data);
             snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
             imageUrl = snapshotResponse.data.image;
@@ -200,7 +201,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFundabilityMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. (Fundability Score: ${(Math.round(element.fundability*100)).toFixed(0)}%) ${element.ideaDescription} \n`    
+                        ideaString += `${index+1}. (${(Math.round(element.fundability*100)).toFixed(0)}%) ${element.ideaDescription} \n`    
                     });
                     console.log("Idea by fundability map", ideaByFundabilityMap);
                     convo.setVar("ideasByFundability" , ideaString)
@@ -209,7 +210,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the top ideas by fundability score. Type the number of the idea you want to develop further.\n{{{vars.ideasByFundability}}}\n",
+                    text : "Here are the top ideas by fundability. Type the number of the idea you want to develop further.\n{{{vars.ideasByFundability}}}\n",
                 },
                 [
                     {
@@ -258,7 +259,7 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFreshnessMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. (Freshness Score: ${element.freshness.toFixed(2)}) ${element.ideaDescription} \n`    
+                        ideaString += `${index+1}. (${element.freshness.toFixed(2)}) ${element.ideaDescription} \n`    
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
@@ -268,7 +269,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the top ideas by freshness score. Type the number of the idea you want to develop further.\n{{{vars.ideasByFreshness}}}\n",
+                    text : "Here are the top ideas by freshness. Type the number of the idea you want to develop further.\n{{{vars.ideasByFreshness}}}\n",
                 },
                 [
                     {
@@ -505,6 +506,8 @@ module.exports = function(controller) {
                     })
                     console.log(ideaCategoriesMap,ideaCategoriesString);
                     convo.setVar("idea_categories", ideaCategoriesString);
+
+
                     next();
                 })
 
@@ -771,7 +774,7 @@ module.exports = function(controller) {
                                 similarCompanies = await elasticSearchService.search(problem);
                                 similarCompanies.forEach( (element,index) => {
                                     similarCompaniesMap[`${index+1}`] = element._source.company_name
-                                    similarCompaniesString += `${index+1}. ${element._source.company_name}\n`;
+                                    similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
                                 })
                             }
                             catch(e) {
@@ -852,10 +855,7 @@ module.exports = function(controller) {
                         callback : function(res, convo) {
                             let companies = res.text.split(',');
                             companies.forEach( company => {
-                                console.log("ZZZZZZZZ", company);
-                                let companyName = company.slice(company.indexOf('|')+1).slice(0,-1);
-                                console.log("ZZZZZZZZZZZ", companyName);
-                                chosenCompanies.push(companyName);
+                                chosenCompanies.push(company);
                             })
                             console.log("final companies chosen: ",chosenCompanies);
                             convo.gotoThread("choose_top_competitor_thread");
@@ -913,7 +913,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "How are you different from {{{vars.top_competitor}}}?"
+                    text : "What does {{{vars.top_competitor}}} do? For instance Uber's description on crunchbase is 'Uber develops, markets, and operates a ride-sharing mobile application that allows consumers to submit a trip request.' Provide something similar for {{{vars.top_competitor}}}."
                 },
                 [
                     {
@@ -926,7 +926,13 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            ideaObj.competitiveDifferentiation = res.text;
+                            if(res.text.length< 140){
+                                bot.reply(message, {
+                                    text : "The description should have atleast 140 characters. Please re-enter."
+                                })
+                                convo.repeat();
+                            }
+                            ideaObj.topCompetitorUserDescription = res.text;
                             convo.next();
                         }
                     }   
@@ -935,12 +941,12 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread");
 
                 convo.addMessage({
-                    text : "OK, we are almost done. Two more questions."
+                    text : "OK, we are almost done. The last set of questions to calculate how much your revenue will be."
                 },"chosen_top_competitor_thread");
 
 
                 convo.addQuestion({
-                    text : "What do you have (skills, data, or something else) that will allow you to offer a higher quality product or one at a lower cost than others?"
+                    text : "What is the total number of users of your company?"
                 },
                 [
                     {
@@ -953,7 +959,7 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            ideaObj.newCapabilities = res.text;
+                            ideaObj.totalNumberOfUsers = res.text;
                             convo.next();
                         }
                     }
@@ -962,7 +968,7 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread");
 
                 convo.addQuestion({
-                    text : "Fantastic! The final question is about your business model. How will you make money?"
+                    text : "Fantastic! What will be the price per user in dollars?"
                 },
                 [
                     {
@@ -975,13 +981,36 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            ideaObj.revenueModel = res.text;
+                            ideaObj.pricePerUser = res.text;
                             convo.next();
                         }
                     }
                 ],
                 {},
                 "chosen_top_competitor_thread")
+
+
+                convo.addQuestion({
+                    text : "What is the percentage of users you will address in an year (approx)?"
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo){
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo){
+                            ideaObj.userPercentage = res.text;
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "chosen_top_competitor_thread");
 
                 convo.addMessage({
                     text : "Hang on a sec, while I analyze your responses using my AI powers...",

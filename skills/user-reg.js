@@ -3,7 +3,6 @@ const axios = require('axios');
 
 module.exports = function(controller) {
     controller.on('message,direct_message,help_custom_event,greet_custom_event', function(bot, message){
-        console.log("exec");
         let userInfo = {};
         let skillMap = {};
         let connectionsMap = {};

@@ -20,7 +20,15 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             idea = res.text;
-                            convo.transitionTo("results_thread","Please wait while I am fetching the results of the analysis");
+                            if(idea.length < 140){
+                                bot.reply(message, {
+                                    text : "The description should have atleast 140 characters. Please re-enter."
+                                })
+                                convo.repeat();
+                            }
+                            else {
+                                convo.transitionTo("results_thread","Please wait while I am fetching the results of the analysis");
+                            }
                             convo.next();
                         }
                     }
