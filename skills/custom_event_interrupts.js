@@ -25,6 +25,9 @@ module.exports = function(controller) {
             convo.say({
                 text : "Hi there!  Welcome to StartiQ. I am a science-backed assistant to help you develop and research your business ideas super fast."
             })
+            convo.say({
+                text : "You can add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
+            })
             convo.activate();
         })
     })

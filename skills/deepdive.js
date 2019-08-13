@@ -602,6 +602,7 @@ module.exports = function(controller) {
                     {
                         pattern : "product",
                         callback : function(res,cov){
+                            console.log("execcccc");
                             console.log("Selling a: ", res.text);
                             ideaObj.sellingTo = res.text;
                             convo.next();
@@ -618,6 +619,9 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            bot.reply(message, {
+                                text : "Please use the buttons for the reply."
+                            })
                             convo.repeat();
                             convo.next();
                         }

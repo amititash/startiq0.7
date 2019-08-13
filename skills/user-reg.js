@@ -2,7 +2,7 @@ const store = require('../store/store');
 const axios = require('axios');
 
 module.exports = function(controller) {
-    controller.on('message,direct_message,help_custom_event,greet_custom_event', function(bot, message){
+    controller.on('message,direct_message,custom_help_event,custom_greet_event', function(bot, message){
         let userInfo = {};
         let skillMap = {};
         let connectionsMap = {};
@@ -100,7 +100,7 @@ module.exports = function(controller) {
                                 {
                                     "name":"build profile",
                                     "text": "Build Profile",
-                                    "value": "build_profile",
+                                    "value": "build profile",
                                     "type": "button",
                                 },
                                 {
@@ -122,7 +122,7 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        pattern : "build_profile",
+                        pattern : "build profile",
                         callback : function(res, convo) {
                             convo.gotoThread("build_profile_thread");
                             convo.next();   
@@ -131,14 +131,16 @@ module.exports = function(controller) {
                     {
                         pattern : "ideate",
                         callback :function(res, convo) {
-                            convo.gotoThread("build_profile_thread");
+                            convo.gotoThread("generate_ideas_thread");
                             convo.next();
                         }
                     },
                     {
                         default : true,
                         callback : function(res, convo) {
-
+                            bot.reply(message, {
+                                text : "Please use the buttons for the reply."
+                            })
                             convo.repeat();
                             convo.next();
                         }
@@ -209,19 +211,19 @@ module.exports = function(controller) {
                                 {
                                     "name":"full stack developer",
                                     "text": "Full-Stack developer",
-                                    "value": "full_stack_developer",
+                                    "value": "full stack developer",
                                     "type": "button",
                                 },
                                 {
                                     "name" : "marketing maven",
                                     "text": "Marketing Maven",
-                                    "value": "marketing_maven",
+                                    "value": "marketing maven",
                                     "type": "button",
                                 },
                                 {
                                     "name" : "the manager",
                                     "text": "The Manager",
-                                    "value": "the_manager",
+                                    "value": "the manager",
                                     "type": "button",
                                 }
                             ]
@@ -237,7 +239,7 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        pattern : "full_stack_developer",
+                        pattern : "full stack developer",
                         callback : function(res, convo) {
                             userInfo.founderRole = res.text;
                             convo.gotoThread("full_stack_developer_thread");
@@ -245,7 +247,7 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        pattern : "marketing_maven",
+                        pattern : "marketing maven",
                         callback : function(res, convo) {
                             userInfo.founderRole = res.text;
                             convo.gotoThread("marketing_maven_thread");
@@ -253,7 +255,7 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        pattern : "the_manager",
+                        pattern : "the manager",
                         callback : function(res, convo) {
                             userInfo.founderRole = res.text;
                             convo.gotoThread("manager_thread");
@@ -263,6 +265,9 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            bot.reply(message, {
+                                text : "Please use the buttons for the reply."
+                            })
                             convo.repeat();
                             convo.next();
                         }
@@ -467,6 +472,10 @@ module.exports = function(controller) {
                 })
 
                 convo.addMessage({
+                    text : "Cool! there are three ways in which you can do ideation\n1. say “deepdive” for a 10 minute session. deep analysis of your startup idea  using AI\n2. say “ideabolt” for a quick review of your idea using AI\n3. say “ideastorm” for rapidly listing a bunch of ideas which you can revisit later"
+                },"generate_ideas_thread");
+
+                convo.addMessage({
                     text : "No problem, You can complete your registration process later."
                 },"early_exit_thread");
                 
@@ -474,6 +483,8 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "That is all for now. I have a good sense of your skills. If you want more tools to help you understand yourself better as a founder, just type 'founder'. Otherwise, you can start developing ideas by typing 'ideastorm' in the prompt."
                 },"user_reg_complete_thread");
+
+
                 
                 convo.activate();
             })

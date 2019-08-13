@@ -23,8 +23,11 @@ module.exports = function(controller){
         }
     })
 
-    // controller.middleware.ingest.use( function(bot, message, res, next){
-    // console.log(message);
-    //     next();
-    // })
+    controller.middleware.ingest.use( function(bot, message, res, next){
+        // if(!message.event){
+        //     console.log(message);
+        // }
+        // console.log("************************************************");
+        next();
+    })
 }
