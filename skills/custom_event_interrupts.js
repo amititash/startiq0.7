@@ -31,4 +31,16 @@ module.exports = function(controller) {
             convo.activate();
         })
     })
+
+    controller.on('too_long_message_event', function(bot, message){
+        bot.createConversation(message, function(err, convo){
+            bot.reply(message, {
+                text : "Your idea exceeds the maximum length. Please re-enter."
+            })
+            convo.activate();
+        })
+    })
+
+
+
 }

@@ -23,11 +23,20 @@ module.exports = function(controller){
         }
     })
 
-    controller.middleware.ingest.use( function(bot, message, res, next){
-        // if(!message.event){
-        //     console.log(message);
-        // }
-        // console.log("************************************************");
-        next();
-    })
+
+
+      
+
+    // controller.middleware.ingest.use( function(bot, message, res, next){
+    //     if(message.event.text.length > 250 ){
+    //         console.log(message);
+    //         console.log("************************************");
+    //         controller.trigger('too_long_message_event', [bot, message.event]);
+    //     }
+    //     else {
+    //         next();
+    //     }
+    //     console.log("woah");   
+    //     next();
+    // })
 }

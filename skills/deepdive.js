@@ -620,7 +620,7 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             bot.reply(message, {
-                                text : "Please use the buttons for the reply."
+                                text : "Please click the corresponding button for replying."
                             })
                             convo.repeat();
                             convo.next();
@@ -648,7 +648,7 @@ module.exports = function(controller) {
                                 {
                                     "name" : "individual customer",
                                     "text": "Individual Customer",
-                                    "value": "individual_customer",
+                                    "value": "individual customer",
                                     "type": "button",
                                 },
                                 {
@@ -679,7 +679,7 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        pattern : "individual_customer",
+                        pattern : "individual customer",
                         callback : function(res, convo) {
                             console.log("Chosen customer segment: ",res.text);
                             convo.setVar("chosen_customer_segment", "individual customer");
@@ -699,6 +699,9 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            bot.reply(message, {
+                                text : "Please click the corresponding button for replying."
+                            })
                             convo.repeat();
                             convo.next();
                         }

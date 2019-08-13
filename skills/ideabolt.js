@@ -13,7 +13,7 @@ module.exports = function(controller) {
             let imageUrl = "";
             bot.createConversation(message, function(err, convo) {
                 convo.addQuestion({
-                    text : "Please enter your idea."
+                    text : "Please enter your idea. It should be between 140 to 256 characters."
                 },
                 [
                     {

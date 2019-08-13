@@ -90,6 +90,17 @@ var controller = Botkit.slackbot(bot_options);
 controller.startTicking();
 
 
+controller.middleware.receive.use( function(bot, message,  next){
+  if(message.event && message.event.text && message.event.text.length > 250 ){
+      controller.trigger('too_long_message_event', [bot, message.event]);
+  }
+  else {
+      next();
+  }
+})
+
+
+
 controller.middleware.receive.use(dashbot.receive);
 controller.middleware.send.use(dashbot.send);
 

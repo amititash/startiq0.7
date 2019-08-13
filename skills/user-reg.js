@@ -1,95 +1,252 @@
 const store = require('../store/store');
 const axios = require('axios');
+const userProfile = require('../utils/userProfile');
 
 module.exports = function(controller) {
-    controller.on('message,direct_message,custom_help_event,custom_greet_event', function(bot, message){
+    controller.on('message,direct_message,custom_help_event,custom_greet_event', async function(bot, message){
         let userInfo = {};
         let skillMap = {};
         let connectionsMap = {};
+        let slackInfo = {};
         if( !store.get(message.user) ){
+            try {
+                slackInfo = await userProfile.slackUserProfile(message.user);
+                userInfo.username = (slackInfo.userRealName ? slackInfo.userRealName : slackInfo.userDisplayName );
+                userInfo.email = slackInfo.userEmail;
+                store.set(message.user, userInfo.email);
+            }
+            catch(e){
+                console.log("error fetching slack data", e);
+            }
             bot.createConversation(message, function(err, convo) {
+                convo.setVar("user_name", userInfo.username);
+                convo.setVar("user_email", userInfo.email);
                 
-                convo.say({
-                    text : "Hi there! :sunglasses: Welcome to StartiQ. I am a science-backed assistant to help you develop and research your business ideas super fast."
+                // convo.say({
+                //     text : "Hi there! :sunglasses: Welcome to StartiQ. I am a science-backed assistant to help you develop and research your business ideas super fast."
+                // })
+                // convo.ask({
+                //     text : "Let's begin by signing you up for a free account. What is your email address?"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : async function(res, convo) {
+                //             let email = res.text;
+                //             try {
+                //                 email = email.slice(email.indexOf('|')+1).slice(0,-1);
+                //             }
+                //             catch(e) {
+                //                 console.log("Error in converting email", e);
+                //             }
+                //             userInfo.email = email;
+                //             let actualEmail = await userProfile.slackUserProfile(message.user);
+                //             store.set(message.user, actualEmail )
+                //             // store.set(message.user, userInfo.email);
+                //             convo.next();
+                //         }
+                //     }
+                // ]);
+
+                // //Currently we save the user into db only after flow wholly complete. But we store user's mail locally at 
+                // //the moment he enters his email id. So next time he won't be prompted for sign up until local storage cleared.
+
+                // convo.ask({
+                //     text : "Great. What is your first name and last name?"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : async function(res, convo) {
+                //             let name = res.text;
+                //             convo.setVar("username", name.split(' ')[0]);
+                //             userInfo.username = name;
+                //             let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
+                //             let mailData = {
+                //                 to : [store.get(message.user)],
+                //                 from : "engineering@startiq.org",
+                //                 subject : "StartiQ",
+                //                 body : `Hi ${name}! Welcome to StartiQ. We are happy to have you on our platform`
+                //             }
+                //             try {
+                //                 await axios.post(mailUrl, mailData);
+                //             }
+                //             catch(e){
+                //                 console.log("email not sent");
+                //                 console.log(e.message);
+                //             }
+                //             convo.next();
+                //         }
+                //     }
+                // ]);
+                
+
+                // convo.say({
+                //     text : "Fantastic, {{vars.username}}! I've sent you a confirmation email. Just click on the link inside it and your account will be ready to go. :airplane: "
+                // });
+
+
+
+
+
+
+
+
+                
+                convo.addMessage({
+                    text : "Hi {{{vars.user_name}}}! :sunglasses: Welcome to StartiQ. I am a science-backed assistant to help you develop and research your business ideas super fast.",
+                },"default");
+
+                convo.addMessage({
+                    text : "I am signing you up as {{{vars.user_email}}}. You will get emails from us occasionally on this email id.",
+                    action : "signup_thread"
+                },"default");
+
+
+
+                convo.beforeThread("signup_thread", async function(convo, next){
+                    let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
+                    let mailData = {
+                        to : [store.get(message.user)],
+                        from : "engineering@startiq.org",
+                        subject : "StartiQ",
+                        body : `Hi ${userInfo.username}! Welcome to StartiQ. We are happy to have you on our platform`
+                    }
+                    try {
+                        await axios.post(mailUrl, mailData);
+                    }
+                    catch(e){
+                        console.log("email not sent");
+                        console.log(e.message);
+                    }
+                    next();
                 })
-                convo.ask({
-                    text : "Let's begin by signing you up for a free account. What is your email address?"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let email = res.text;
-                            try {
-                                email = email.slice(email.indexOf('|')+1).slice(0,-1);
-                            }
-                            catch(e) {
-                                console.log("Error in converting email", e);
-                            }
-                            userInfo.email = email;
-                            store.set(message.user, userInfo.email);
-                            convo.next();
-                        }
-                    }
-                ]);
 
-                //Currently we save the user into db only after flow wholly complete. But we store user's mail locally at 
-                //the moment he enters his email id. So next time he won't be prompted for sign up until local storage cleared.
 
-                convo.ask({
-                    text : "Great. What is your first name and last name?"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : async function(res, convo) {
-                            let name = res.text;
-                            convo.setVar("username", name.split(' ')[0]);
-                            userInfo.username = name;
-                            let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
-                            let mailData = {
-                                to : [store.get(message.user)],
-                                from : "engineering@startiq.org",
-                                subject : "StartiQ",
-                                body : `Hi ${name}! Welcome to StartiQ. We are happy to have you on our platform`
-                            }
-                            try {
-                                await axios.post(mailUrl, mailData);
-                            }
-                            catch(e){
-                                console.log("email not sent");
-                                console.log(e.message);
-                            }
-                            convo.next();
-                        }
-                    }
-                ]);
-                
-                
-
-                convo.say({
+                convo.addMessage({
                     text : "Fantastic, {{vars.username}}! I've sent you a confirmation email. Just click on the link inside it and your account will be ready to go. :airplane: "
-                });
-
-                convo.say({
-                    text : "Your account is live. Let's do it!"
-                });
+                },"signup_thread");
                 
-                convo.ask({
+
+
+                // convo.addQuestion({
+                //     text : "Let's begin by signing you up for a free account. What is your email address?"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : async function(res, convo) {
+                //             let email = res.text;
+                //             try {
+                //                 email = email.slice(email.indexOf('|')+1).slice(0,-1);
+                //             }
+                //             catch(e) {
+                //                 console.log("Error in converting email", e);
+                //             }
+                //             userInfo.email = email;
+                //             let actualEmail = await userProfile.slackUserProfile(message.user);
+                //             store.set(message.user, actualEmail )
+                //             // store.set(message.user, userInfo.email);
+                //             convo.next();
+                //         }
+                //     }
+                // ]);
+
+                // //Currently we save the user into db only after flow wholly complete. But we store user's mail locally at 
+                // //the moment he enters his email id. So next time he won't be prompted for sign up until local storage cleared.
+
+                // convo.addQuestion({
+                //     text : "Great. What is your first name and last name?"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : async function(res, convo) {
+                //             let name = res.text;
+                //             convo.setVar("username", name.split(' ')[0]);
+                //             userInfo.username = name;
+                //             let mailUrl = `${process.env.NOTIFICATION_API_URL}/send-email`;
+                //             let mailData = {
+                //                 to : [store.get(message.user)],
+                //                 from : "engineering@startiq.org",
+                //                 subject : "StartiQ",
+                //                 body : `Hi ${name}! Welcome to StartiQ. We are happy to have you on our platform`
+                //             }
+                //             try {
+                //                 await axios.post(mailUrl, mailData);
+                //             }
+                //             catch(e){
+                //                 console.log("email not sent");
+                //                 console.log(e.message);
+                //             }
+                //             convo.next();
+                //         }
+                //     }
+                // ],
+                // {},
+                // "default");
+                
+                
+
+                // convo.addMessage({
+                //     text : "Fantastic, {{vars.username}}! I've sent you a confirmation email. Just click on the link inside it and your account will be ready to go. :airplane: "
+                // },"default");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                convo.addMessage({
+                    text : "Your account is live. Let's do it!"
+                },"signup_thread");
+                
+                convo.addQuestion({
                     text : "We can begin by developing a quick assessment of you as an entrepreneur or jump right into generating ideas.",
                     attachments:[
                         {
@@ -139,13 +296,15 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             bot.reply(message, {
-                                text : "Please use the buttons for the reply."
+                                text : "Please click the corresponding button for replying."
                             })
                             convo.repeat();
                             convo.next();
                         }
                     }
-                ]);
+                ],
+                {},
+                "signup_thread");
                 
 
                 convo.addMessage({
@@ -266,7 +425,7 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             bot.reply(message, {
-                                text : "Please use the buttons for the reply."
+                                text : "Please click the corresponding button for replying."
                             })
                             convo.repeat();
                             convo.next();

@@ -37,8 +37,8 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : function(res, convo) {
-                                if(res.text.length < 150){
-                                    bot.reply(message, "An idea description should contain a minimum of 150 characters. If you want to stop entering ideas, type 'cancel'.")
+                                if(res.text.length < 140){
+                                    bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
                                     convo.repeat();
                                     return ;
                                 }
@@ -81,7 +81,7 @@ module.exports = function(controller) {
 
 
                     convo.say({
-                        text : "A good idea description isn't too long or too short. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
+                        text : "A good idea description isn't too long or too short. It should be between 140 to 256 characters. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
                     })
 
         
