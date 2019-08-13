@@ -296,7 +296,7 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             bot.reply(message, {
-                                text : "Please click the corresponding button for replying."
+                                text : "Please use the buttons below for replying to this question"
                             })
                             convo.repeat();
                             convo.next();
@@ -425,7 +425,7 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             bot.reply(message, {
-                                text : "Please click the corresponding button for replying."
+                                text : "Please use the buttons below for replying to this question"
                             })
                             convo.repeat();
                             convo.next();
