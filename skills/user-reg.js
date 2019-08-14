@@ -634,6 +634,8 @@ module.exports = function(controller) {
                     text : "Cool! there are three ways in which you can do ideation\n1. say “deepdive” for a 10 minute session. deep analysis of your startup idea  using AI\n2. say “ideabolt” for a quick review of your idea using AI\n3. say “ideastorm” for rapidly listing a bunch of ideas which you can revisit later"
                 },"generate_ideas_thread");
 
+                
+
                 convo.addMessage({
                     text : "No problem, You can complete your registration process later."
                 },"early_exit_thread");

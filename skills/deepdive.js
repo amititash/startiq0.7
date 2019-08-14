@@ -2,6 +2,7 @@ const axios = require('axios');
 const store = require('../store/store');
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
 const elasticSearchService =  require('../utils/elasticsearch');
+const cardFormatter = require('../utils/cardFormatter');
 
 
 
@@ -14,6 +15,7 @@ const storeIdea = async (userEmailId, ideaObj) => {
         let snapshotResponse = null;
         // ideaObj.ideaName = ideaObj.ideaDescription.slice(0,200);
         ideaObj.ideaOwner = userEmailId;
+
         
         
         try {
@@ -68,6 +70,25 @@ module.exports = function(controller) {
             let chosenCompaniesMap = {};
             let similarCompanyCountDown = 1;
             let imageUrl = "";
+            let similarCompaniesAttachment = {
+                attachments : []
+            }
+            let ideaByFundabilityAttachment = {
+                attachments : []
+            }
+            let ideaByFreshnessAttachment = {
+                attachments : []
+            }
+            let ideaByMostRecentAttachment = {
+                attachments : []
+            }
+            let allIdeasAttachment = {
+                attachments : []
+            }
+            let ideaByKeywordAttachment = {
+                attachments : []
+            }
+
             try {
                 let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
                 existingIdeas = ideas.data;
@@ -143,14 +164,38 @@ module.exports = function(controller) {
                     let ideaString = "";
                     ideas.forEach( (element,index) => {
                         existingIdeasMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                        ideaString += `${index+1}. ${element.ideaDescription}\n` ;
+                        allIdeasAttachment.attachments.push({
+                            "fallback": "Required plain-text summary of the attachment.",
+                            "color": "#36a64f",
+                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
+                            "author_name": `${index+1}. ${element.ideaName}`,
+                            // "author_link": "http://flickr.com/bobby/",
+                            "author_icon": "http://flickr.com/icons/bobby.jpg",
+                            "title": `${element.ideaDescription}`,
+                            // "title_link": "https://api.slack.com/",
+                            // "text": "Optional text that appears within the attachment",
+                            // "fields": [
+                            //     {
+                            //         "title": "Fundability:",
+                            //         "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
+                            //         "short": false
+                            //     }
+                            // ],
+                            "image_url": "http://my-website.com/path/to/image.jpg",
+                            "thumb_url": "http://example.com/path/to/thumb.png",
+                            "footer": "Slack API",
+                            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                            // "ts": 123456789
+                        })   
                     });
                     convo.setVar("all_existing_ideas", ideaString);
                     next();
                 });
 
                 convo.addQuestion({
-                    text : "Here are your ideas:\n{{{vars.all_existing_ideas}}}\nType the number of the idea you want to develop further."
+                    text : "Here are all your ideas. Type the number of the idea you want to develop further.",
+                    attachments : allIdeasAttachment.attachments
                 },
                 [
                     {
@@ -201,7 +246,30 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFundabilityMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. (${(Math.round(element.fundability*100)).toFixed(0)}%) ${element.ideaDescription} \n`    
+                        ideaString += `${index+1}. (${(Math.round(element.fundability*100)).toFixed(0)}%) ${element.ideaDescription} \n`;
+                        ideaByFundabilityAttachment.attachments.push({
+                            "fallback": "Required plain-text summary of the attachment.",
+                            "color": "#36a64f",
+                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
+                            "author_name": `${index+1}. ${element.ideaName}`,
+                            // "author_link": "http://flickr.com/bobby/",
+                            "author_icon": "http://flickr.com/icons/bobby.jpg",
+                            "title": `${element.ideaDescription}`,
+                            // "title_link": "https://api.slack.com/",
+                            // "text": "Optional text that appears within the attachment",
+                            "fields": [
+                                {
+                                    "title": "Fundability:",
+                                    "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
+                                    "short": false
+                                }
+                            ],
+                            "image_url": "http://my-website.com/path/to/image.jpg",
+                            "thumb_url": "http://example.com/path/to/thumb.png",
+                            "footer": "Slack API",
+                            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                            // "ts": 123456789
+                        })
                     });
                     console.log("Idea by fundability map", ideaByFundabilityMap);
                     convo.setVar("ideasByFundability" , ideaString)
@@ -210,7 +278,8 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the top ideas by fundability. Type the number of the idea you want to develop further.\n{{{vars.ideasByFundability}}}\n",
+                    text : "Here are the top ideas by fundability. Type the number of the idea you want to develop further.\n",
+                    attachments : ideaByFundabilityAttachment.attachments
                 },
                 [
                     {
@@ -259,7 +328,30 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByFreshnessMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. (${element.freshness.toFixed(2)}) ${element.ideaDescription} \n`    
+                        ideaString += `${index+1}. (${element.freshness.toFixed(2)}) ${element.ideaDescription} \n`  
+                        ideaByFreshnessAttachment.attachments.push({
+                            "fallback": "Required plain-text summary of the attachment.",
+                            "color": "#36a64f",
+                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
+                            "author_name": `${index+1}. ${element.ideaName}`,
+                            // "author_link": "http://flickr.com/bobby/",
+                            "author_icon": "http://flickr.com/icons/bobby.jpg",
+                            "title": `${element.ideaDescription}`,
+                            // "title_link": "https://api.slack.com/",
+                            // "text": "Optional text that appears within the attachment",
+                            "fields": [
+                                {
+                                    "title": "Freshness:",
+                                    "value": `${element.freshness_criteria}`,
+                                    "short": false
+                                }
+                            ],
+                            "image_url": "http://my-website.com/path/to/image.jpg",
+                            "thumb_url": "http://example.com/path/to/thumb.png",
+                            "footer": "Slack API",
+                            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                            // "ts": 123456789
+                        })  
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
@@ -269,7 +361,8 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the top ideas by freshness. Type the number of the idea you want to develop further.\n{{{vars.ideasByFreshness}}}\n",
+                    text : "Here are the top ideas by freshness. Type the number of the idea you want to develop further.",
+                    attachments : ideaByFreshnessAttachment.attachments
                 },
                 [
                     {
@@ -320,7 +413,30 @@ module.exports = function(controller) {
                     let ideaString = ""
                     ideas.forEach( (element,index) => {
                         ideaByRecentMap[`${index+1}`] = element.ideaDescription;
-                        ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                        ideaString += `${index+1}. ${element.ideaDescription}\n`;
+                        ideaByMostRecentAttachment.attachments.push({
+                            "fallback": "Required plain-text summary of the attachment.",
+                            "color": "#36a64f",
+                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
+                            "author_name": `${index+1}. ${element.ideaName}`,
+                            // "author_link": "http://flickr.com/bobby/",
+                            "author_icon": "http://flickr.com/icons/bobby.jpg",
+                            "title": `${element.ideaDescription}`,
+                            // "title_link": "https://api.slack.com/",
+                            // "text": "Optional text that appears within the attachment",
+                            // "fields": [
+                            //     {
+                            //         "title": "Fundability:",
+                            //         "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
+                            //         "short": false
+                            //     }
+                            // ],
+                            "image_url": "http://my-website.com/path/to/image.jpg",
+                            "thumb_url": "http://example.com/path/to/thumb.png",
+                            "footer": "Slack API",
+                            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                            // "ts": 123456789
+                        })
                     });
                     console.log("idea by recent map", ideaByRecentMap);
                     convo.setVar("most_recent_ideas" , ideaString)
@@ -330,7 +446,8 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are your most recent ideas. Type the number of the idea you want to develop further.\n{{{vars.most_recent_ideas}}}",
+                    text : "Here are your most recent ideas. Type the number of the idea you want to develop further.",
+                    attachments : ideaByMostRecentAttachment.attachments
                 },
                 [
                     {
@@ -400,6 +517,29 @@ module.exports = function(controller) {
                                 ideas.forEach( (element,index) => {
                                     ideaByKeywordMap[`${index+1}`] = element.ideaDescription;
                                     ideaString += `${index+1}. ${element.ideaDescription}\n`    
+                                    ideaByKeywordAttachment.attachments.push({
+                                        "fallback": "Required plain-text summary of the attachment.",
+                                        "color": "#36a64f",
+                                        // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
+                                        "author_name": `${index+1}. ${element.ideaName}`,
+                                        // "author_link": "http://flickr.com/bobby/",
+                                        "author_icon": "http://flickr.com/icons/bobby.jpg",
+                                        "title": `${element.ideaDescription}`,
+                                        // "title_link": "https://api.slack.com/",
+                                        // "text": "Optional text that appears within the attachment",
+                                        // "fields": [
+                                        //     {
+                                        //         "title": "Fundability:",
+                                        //         "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
+                                        //         "short": false
+                                        //     }
+                                        // ],
+                                        "image_url": "http://my-website.com/path/to/image.jpg",
+                                        "thumb_url": "http://example.com/path/to/thumb.png",
+                                        "footer": "Slack API",
+                                        "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                                        // "ts": 123456789
+                                    })
                                 });
                                 console.log("Idea by keyword search map", ideaByKeywordMap);
                                 convo.setVar("ideasByKeyword" , ideaString)
@@ -415,7 +555,8 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the ideas that matched your search. Type the number of the idea you want to develop further.\n{{{vars.ideasByKeyword}}}",
+                    text : "Here are the ideas that matched your search. Type the number of the idea you want to develop further.",
+                    attachments : ideaByKeywordAttachment.attachments
                 },
                 [
                     {
@@ -777,17 +918,43 @@ module.exports = function(controller) {
                             let problem = res.text || "";
                             ideaObj.problemsSolved = problem;
                             let similarCompaniesString = "";
+                            // let similarCompaniesAttachment = {
+                            //     attachments : []
+                            // };
                             try {
                                 similarCompanies = await elasticSearchService.search(problem);
+                                similarCompaniesAttachment1 = cardFormatter.cardFormatter(similarCompanies); 
                                 similarCompanies.forEach( (element,index) => {
                                     similarCompaniesMap[`${index+1}`] = element._source.company_name
                                     similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
+                                    similarCompaniesAttachment.attachments.push({
+                                        "fallback": "Required plain-text summary of the attachment.",
+                                        "color": "#36a64f",
+                                        // "pretext": "Optional text that appears above the attachment block",
+                                        "author_name": `${index+1}. ${element._source.company_name}`,
+                                        "author_link": `http://${element._source.domain}`,
+                                        "author_icon": "http://flickr.com/icons/bobby.jpg",
+                                        "title": `${element._source.company_name}`,
+                                        "title_link": `http://${element._source.domain}`,
+                                        "text": `${element._source.description}`,
+                                        // "fields": [
+                                        //     {
+                                        //         "title": "Priority",
+                                        //         "value": "High",
+                                        //         "short": false
+                                        //     }
+                                        // ],
+                                        "image_url": "http://my-website.com/path/to/image.jpg",
+                                        "thumb_url": "http://example.com/path/to/thumb.png",
+                                        "footer": "Slack API",
+                                        "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                                        // "ts": 123456789
+                                    })
                                 })
                             }
                             catch(e) {
                                 console.log("Error in elasticsearch", e)
                             }
-                            console.log("simi")
                             if(!similarCompanies.length){
                                 similarCompaniesString = "No similar companies found."
                                 convo.setVar("similar_companies", similarCompaniesString);
@@ -797,7 +964,6 @@ module.exports = function(controller) {
                                 convo.setVar("similar_companies", similarCompaniesString);
                                 convo.gotoThread("choose_similar_companies_thread");
                             }
-                            console.log(similarCompaniesString);
                             
                             convo.next();
                         }
@@ -808,7 +974,9 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Fantastic! I did a few searches and found some companies that describe themselves in a way similar to you...\n{{{vars.similar_companies}}}\nCheck these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer."
+                    // text : "Fantastic! I did a few searches and found some companies that describe themselves in a way similar to you...\n{{{vars.similar_companies}}}\nCheck these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer."
+                    text : "wow",
+                    attachments : similarCompaniesAttachment.attachments
                 },
                 [
                     {
