@@ -1248,7 +1248,7 @@ module.exports = function(controller) {
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
                             "pretext": "StartIQ Analysis of your idea",
-                            "author_name": "{{{vars.idea_name}}}",
+                            // "author_name": "{{{vars.idea_name}}}",
                             "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
                             "title": "{{{vars.idea_description}}}",

@@ -133,7 +133,7 @@ module.exports = function(controller) {
                             
                             "author_link": "https://storage.restpack.io/screenshot/b34240ce7d1b0b8a02a9b717897c178ae9865187af07728a3802e43085f67414.jpg",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            "title": `${idea.slice(0,200)}`,
+                            // "title": `${idea.slice(0,200)}`,
                 
                             "text": `${idea}`,
                             "fields": [
