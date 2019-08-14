@@ -175,7 +175,7 @@ module.exports = function(controller) {
                             "author_name": `${index+1}. ${element.ideaName}`,
                             // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            "title": `${element.ideaDescription}`,
+                            // "title": `${element.ideaDescription}`,
                             // "title_link": "https://api.slack.com/",
                             // "text": "Optional text that appears within the attachment",
                             // "fields": [
@@ -257,7 +257,7 @@ module.exports = function(controller) {
                             "author_name": `${index+1}. ${element.ideaName}`,
                             // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            "title": `${element.ideaDescription}`,
+                            // "title": `${element.ideaDescription}`,
                             // "title_link": "https://api.slack.com/",
                             // "text": "Optional text that appears within the attachment",
                             "fields": [
@@ -339,7 +339,7 @@ module.exports = function(controller) {
                             "author_name": `${index+1}. ${element.ideaName}`,
                             // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            "title": `${element.ideaDescription}`,
+                            // "title": `${element.ideaDescription}`,
                             // "title_link": "https://api.slack.com/",
                             // "text": "Optional text that appears within the attachment",
                             "fields": [
@@ -424,7 +424,7 @@ module.exports = function(controller) {
                             "author_name": `${index+1}. ${element.ideaName}`,
                             // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            "title": `${element.ideaDescription}`,
+                            // "title": `${element.ideaDescription}`,
                             // "title_link": "https://api.slack.com/",
                             // "text": "Optional text that appears within the attachment",
                             // "fields": [
@@ -527,7 +527,7 @@ module.exports = function(controller) {
                                         "author_name": `${index+1}. ${element.ideaName}`,
                                         // "author_link": "http://flickr.com/bobby/",
                                         "author_icon": "http://flickr.com/icons/bobby.jpg",
-                                        "title": `${element.ideaDescription}`,
+                                        // "title": `${element.ideaDescription}`,
                                         // "title_link": "https://api.slack.com/",
                                         // "text": "Optional text that appears within the attachment",
                                         // "fields": [
