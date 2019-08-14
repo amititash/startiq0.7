@@ -31,14 +31,17 @@ const storeIdea = async (userEmailId, ideaObj) => {
                 body : `Here is the link to the report : ${imageUrl}`
             }
             await axios.post(mailUrl, mailData);
+
         }
         catch(e) {
             console.log("some error occurred",e);
             reject(e);
         }
+        
         resolve({
             success : true,
-            imageUrl : imageUrl
+            imageUrl : imageUrl,
+            koResponse : response.data
         });
     })
 }
@@ -184,7 +187,7 @@ module.exports = function(controller) {
                             // ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
-                            "footer": "Slack API",
+                            "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                             // "ts": 123456789
                         })   
@@ -266,7 +269,7 @@ module.exports = function(controller) {
                             ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
-                            "footer": "Slack API",
+                            "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                             // "ts": 123456789
                         })
@@ -348,7 +351,7 @@ module.exports = function(controller) {
                             ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
-                            "footer": "Slack API",
+                            "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                             // "ts": 123456789
                         })  
@@ -433,7 +436,7 @@ module.exports = function(controller) {
                             // ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
-                            "footer": "Slack API",
+                            "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                             // "ts": 123456789
                         })
@@ -536,7 +539,7 @@ module.exports = function(controller) {
                                         // ],
                                         "image_url": "http://my-website.com/path/to/image.jpg",
                                         "thumb_url": "http://example.com/path/to/thumb.png",
-                                        "footer": "Slack API",
+                                        "footer": "StartIQ API",
                                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                                         // "ts": 123456789
                                     })
@@ -699,6 +702,7 @@ module.exports = function(controller) {
                                 }
                             })
                             console.log("Categories chosen: ", chosenCategories);
+                            convo.setVar("user_categories", chosenCategories.join(','))
                             convo.next();
                         }
                     }
@@ -917,6 +921,7 @@ module.exports = function(controller) {
                             let similarCompanies = [];
                             let problem = res.text || "";
                             ideaObj.problemsSolved = problem;
+                            convo.setVar("problem_solved", problem);
                             let similarCompaniesString = "";
                             // let similarCompaniesAttachment = {
                             //     attachments : []
@@ -936,7 +941,7 @@ module.exports = function(controller) {
                                         "author_icon": "http://flickr.com/icons/bobby.jpg",
                                         "title": `${element._source.company_name}`,
                                         "title_link": `http://${element._source.domain}`,
-                                        "text": `${element._source.description}`,
+                                        "text": `${element._source.description.slice(0,200)}`,
                                         // "fields": [
                                         //     {
                                         //         "title": "Priority",
@@ -946,7 +951,7 @@ module.exports = function(controller) {
                                         // ],
                                         "image_url": "http://my-website.com/path/to/image.jpg",
                                         "thumb_url": "http://example.com/path/to/thumb.png",
-                                        "footer": "Slack API",
+                                        "footer": "StartIQ API",
                                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                                         // "ts": 123456789
                                     })
@@ -958,7 +963,7 @@ module.exports = function(controller) {
                             if(!similarCompanies.length){
                                 similarCompaniesString = "No similar companies found."
                                 convo.setVar("similar_companies", similarCompaniesString);
-                                convo.transitionTo("add_missed_similar_companies_thread", "I did not find any similar companies. Did I miss any company? Please enter the name of the companies. If there are multiple, enter a comma-separated list.")
+                                convo.transitionTo("add_missed_similar_companies_thread", "I did not find any similar companies. Did I miss any company? Please enter the name of the companies. If there are multiple, enter a comma-separated list. Please enter a comma-separated list of corresponding numbers.")
                             }
                             else {
                                 convo.setVar("similar_companies", similarCompaniesString);
@@ -972,11 +977,17 @@ module.exports = function(controller) {
                 {},
                 "choose_idea_categories_thread");
 
+                convo.addMessage({
+                    text : "Fantastic! I did a few searches and found some companies that describe themselves in a way similar to you..."
+                },"choose_similar_companies_thread");
+
+                convo.addMessage({
+                    attachments : similarCompaniesAttachment.attachments
+                },"choose_similar_companies_thread");
 
                 convo.addQuestion({
-                    // text : "Fantastic! I did a few searches and found some companies that describe themselves in a way similar to you...\n{{{vars.similar_companies}}}\nCheck these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer."
-                    text : "wow",
-                    attachments : similarCompaniesAttachment.attachments
+                    // attachments : similarCompaniesAttachment.attachments
+                    text : "Check these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer. Please enter a comma-separated list of corresponding numbers."
                 },
                 [
                     {
@@ -1121,7 +1132,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "What is the total number of users of your company?"
+                    text : "What is the total number of potential users who can use your product or service?"
                 },
                 [
                     {
@@ -1180,12 +1191,18 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo){
                             ideaObj.userPercentage = res.text;
+                            let predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser) * Number(ideaObj.userPercentage)/100 ; 
+                            convo.setVar("predicted_revenue", predictedRevenue);
                             convo.next();
                         }
                     }
                 ],
                 {},
                 "chosen_top_competitor_thread");
+
+                convo.addMessage({
+                    text : "Your potential annual revenue is ${{{vars.predicted_revenue}}}"
+                },"chosen_top_competitor_thread");
 
                 convo.addMessage({
                     text : "Hang on a sec, while I analyze your responses using my AI powers...",
@@ -1211,6 +1228,12 @@ module.exports = function(controller) {
                                 }
                             ]  
                         })
+                        console.log("xxxxxxxxxxxx", response)
+                        convo.setVar("startup_skills", response.koResponse.startupSkills.join(','))
+                        convo.setVar("fundability", Math.round((response.koResponse.fundability*100).toFixed(0)))
+                        convo.setVar("freshness" , response.koResponse.freshness_criteria);
+                        convo.setVar("idea_name", response.koResponse.ideaName);
+                        convo.setVar("idea_description", response.koResponse.ideaDescription);
                     }
                     catch(e) {
                         console.log("some error occurred",e);
@@ -1218,6 +1241,78 @@ module.exports = function(controller) {
                     next();
                 })
 
+
+                convo.addMessage({
+                    "attachments": [
+                        {
+                            "fallback": "Required plain-text summary of the attachment.",
+                            "color": "#36a64f",
+                            "pretext": "StartIQ Analysis of your idea",
+                            "author_name": "{{{vars.idea_name}}}",
+                            "author_link": "http://flickr.com/bobby/",
+                            "author_icon": "http://flickr.com/icons/bobby.jpg",
+                            "title": "{{{vars.idea_description}}}",
+                            "title_link": "https://api.slack.com/",
+                            // "text": "idea desc lorem ipsum upsu sdl sdlkfj sdlfkj idea desc lorem ipsum upsu sdl sdlkfj sdlfkj",
+                            "fields": [
+                                 {
+                                    "title": "Problem Solved",
+                                    "value": "{{{vars.problem_solved}}}",
+                                    "short": false
+                                },
+                                {
+                                    "title": "Freshness",
+                                    "value": "{{{vars.freshness}}}",
+                                    "short": false
+                                },
+                                {
+                                    "title": "Fundability probability",
+                                    "value": "{{{vars.fundability}}}%",
+                                    "short": false
+                                },
+                                {
+                                    "title": "Competition",
+                                    "value": "Small",
+                                    "short": false
+                                },
+                                {
+                                    "title": "Skills Required",
+                                    "value": "{{{vars.startup_skills}}}",
+                                    "short": false
+                                }
+                                ,
+                                {
+                                    "title": "User Categories",
+                                    "value": "{{{vars.user_categories}}}",
+                                    "short": false
+                                }
+                                ,
+                                {
+                                    "title": "Idea Category",
+                                    "value": "{{{vars.idea_categories}}}",
+                                    "short": false
+                                }
+                                ,
+                                {
+                                    "title": "Predicted Revenue",
+                                    "value": "{{{vars.predicted_revenue}}}",
+                                    "short": false
+                                }
+                                ,
+                                {
+                                    "title": "Top Competitors",
+                                    "value": "{{{vars.finally_chosen_competitors}}}",
+                                    "short": false
+                                }
+                            ],
+                            "image_url": "http://my-website.com/path/to/image.jpg",
+                            "thumb_url": "http://example.com/path/to/thumb.png",
+                            "footer": "StartIQ API",
+                            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+                            // "ts": 123456789
+                        }
+                    ]
+                },"deepdive_completed_thread");
                 
 
                 convo.addMessage({

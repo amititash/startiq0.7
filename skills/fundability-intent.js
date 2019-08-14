@@ -56,7 +56,7 @@ module.exports = function(controller) {
                                     ],
                                     "image_url": "http://my-website.com/path/to/image.jpg",
                                     "thumb_url": "http://example.com/path/to/thumb.png",
-                                    "footer": "Slack API",
+                                    "footer": "StartIQ API",
                                     "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                                     // "ts": 123456789
                                     
