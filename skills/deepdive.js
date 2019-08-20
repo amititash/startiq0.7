@@ -2,8 +2,7 @@ const axios = require('axios');
 const store = require('../store/store');
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
 const elasticSearchService =  require('../utils/elasticsearch');
-const cardFormatter = require('../utils/cardFormatter');
-
+const Formatter = require('../utils/cardFormatter');
 
 
 const storeIdea = async (userEmailId, ideaObj) => {
@@ -45,6 +44,8 @@ const storeIdea = async (userEmailId, ideaObj) => {
         });
     })
 }
+
+
 
 
 
@@ -91,7 +92,6 @@ module.exports = function(controller) {
             let ideaByKeywordAttachment = {
                 attachments : []
             }
-
             try {
                 let ideas = await axios.get(`${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`);
                 existingIdeas = ideas.data;
@@ -99,7 +99,6 @@ module.exports = function(controller) {
             catch(error) {
                 console.log(error);
             }
-
 
             bot.createConversation(message, function(err, convo) {
 
@@ -171,25 +170,12 @@ module.exports = function(controller) {
                         allIdeasAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
                             "author_name": `${index+1}. ${element.ideaName}`,
-                            // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            // "title": `${element.ideaDescription}`,
-                            // "title_link": "https://api.slack.com/",
-                            // "text": "Optional text that appears within the attachment",
-                            // "fields": [
-                            //     {
-                            //         "title": "Fundability:",
-                            //         "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
-                            //         "short": false
-                            //     }
-                            // ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
                             "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                            // "ts": 123456789
                         })   
                     });
                     convo.setVar("all_existing_ideas", ideaString);
@@ -253,13 +239,8 @@ module.exports = function(controller) {
                         ideaByFundabilityAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
                             "author_name": `${index+1}. ${element.ideaName}`,
-                            // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            // "title": `${element.ideaDescription}`,
-                            // "title_link": "https://api.slack.com/",
-                            // "text": "Optional text that appears within the attachment",
                             "fields": [
                                 {
                                     "title": "Fundability:",
@@ -271,7 +252,6 @@ module.exports = function(controller) {
                             "thumb_url": "http://example.com/path/to/thumb.png",
                             "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                            // "ts": 123456789
                         })
                     });
                     console.log("Idea by fundability map", ideaByFundabilityMap);
@@ -335,13 +315,8 @@ module.exports = function(controller) {
                         ideaByFreshnessAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
                             "author_name": `${index+1}. ${element.ideaName}`,
-                            // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            // "title": `${element.ideaDescription}`,
-                            // "title_link": "https://api.slack.com/",
-                            // "text": "Optional text that appears within the attachment",
                             "fields": [
                                 {
                                     "title": "Freshness:",
@@ -353,7 +328,6 @@ module.exports = function(controller) {
                             "thumb_url": "http://example.com/path/to/thumb.png",
                             "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                            // "ts": 123456789
                         })  
                     });
                     console.log("Idea by freshness map", ideaByFreshnessMap);
@@ -420,25 +394,12 @@ module.exports = function(controller) {
                         ideaByMostRecentAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
                             "author_name": `${index+1}. ${element.ideaName}`,
-                            // "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            // "title": `${element.ideaDescription}`,
-                            // "title_link": "https://api.slack.com/",
-                            // "text": "Optional text that appears within the attachment",
-                            // "fields": [
-                            //     {
-                            //         "title": "Fundability:",
-                            //         "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
-                            //         "short": false
-                            //     }
-                            // ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
                             "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                            // "ts": 123456789
                         })
                     });
                     console.log("idea by recent map", ideaByRecentMap);
@@ -491,9 +452,7 @@ module.exports = function(controller) {
                     {
                         pattern : bot.utterances.quit,
                         callback : function(res, conv) {
-                            console.log("here");
                             convo.gotoThread("early_exit_thread");
-                            console.log("there");
                             convo.next();
                         }
                     },
@@ -523,25 +482,12 @@ module.exports = function(controller) {
                                     ideaByKeywordAttachment.attachments.push({
                                         "fallback": "Required plain-text summary of the attachment.",
                                         "color": "#36a64f",
-                                        // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
                                         "author_name": `${index+1}. ${element.ideaName}`,
-                                        // "author_link": "http://flickr.com/bobby/",
                                         "author_icon": "http://flickr.com/icons/bobby.jpg",
-                                        // "title": `${element.ideaDescription}`,
-                                        // "title_link": "https://api.slack.com/",
-                                        // "text": "Optional text that appears within the attachment",
-                                        // "fields": [
-                                        //     {
-                                        //         "title": "Fundability:",
-                                        //         "value": `${(Math.round(element.fundability*100)).toFixed(0)}%`,
-                                        //         "short": false
-                                        //     }
-                                        // ],
                                         "image_url": "http://my-website.com/path/to/image.jpg",
                                         "thumb_url": "http://example.com/path/to/thumb.png",
                                         "footer": "StartIQ API",
                                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                                        // "ts": 123456789
                                     })
                                 });
                                 console.log("Idea by keyword search map", ideaByKeywordMap);
@@ -747,7 +693,6 @@ module.exports = function(controller) {
                     {
                         pattern : "product",
                         callback : function(res,cov){
-                            console.log("execcccc");
                             console.log("Selling a: ", res.text);
                             ideaObj.sellingTo = res.text;
                             convo.next();
@@ -923,43 +868,32 @@ module.exports = function(controller) {
                             ideaObj.problemsSolved = problem;
                             convo.setVar("problem_solved", problem);
                             let similarCompaniesString = "";
-                            // let similarCompaniesAttachment = {
-                            //     attachments : []
-                            // };
+                        
                             try {
                                 similarCompanies = await elasticSearchService.search(problem);
-                                similarCompaniesAttachment1 = cardFormatter.cardFormatter(similarCompanies); 
                                 similarCompanies.forEach( (element,index) => {
                                     similarCompaniesMap[`${index+1}`] = element._source.company_name
                                     similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
                                     similarCompaniesAttachment.attachments.push({
                                         "fallback": "Required plain-text summary of the attachment.",
                                         "color": "#36a64f",
-                                        // "pretext": "Optional text that appears above the attachment block",
                                         "author_name": `${index+1}. ${element._source.company_name}`,
                                         "author_link": `http://${element._source.domain}`,
                                         "author_icon": "http://flickr.com/icons/bobby.jpg",
                                         "title": `${element._source.company_name}`,
                                         "title_link": `http://${element._source.domain}`,
                                         "text": `${element._source.description.slice(0,200)}`,
-                                        // "fields": [
-                                        //     {
-                                        //         "title": "Priority",
-                                        //         "value": "High",
-                                        //         "short": false
-                                        //     }
-                                        // ],
                                         "image_url": "http://my-website.com/path/to/image.jpg",
                                         "thumb_url": "http://example.com/path/to/thumb.png",
                                         "footer": "StartIQ API",
                                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                                        // "ts": 123456789
                                     })
                                 })
                             }
                             catch(e) {
                                 console.log("Error in elasticsearch", e)
                             }
+
                             if(!similarCompanies.length){
                                 similarCompaniesString = "No similar companies found."
                                 convo.setVar("similar_companies", similarCompaniesString);
@@ -986,7 +920,6 @@ module.exports = function(controller) {
                 },"choose_similar_companies_thread");
 
                 convo.addQuestion({
-                    // attachments : similarCompaniesAttachment.attachments
                     text : "Check these out...do any look like they may be competing for the same customers or dollars? Remember they don't have to have the same solution as you to be a competitor, they just have to solve the same or similar problem for your target customer. Please enter a comma-separated list of corresponding numbers."
                 },
                 [
@@ -1228,7 +1161,6 @@ module.exports = function(controller) {
                                 }
                             ]  
                         })
-                        console.log("xxxxxxxxxxxx", response)
                         convo.setVar("startup_skills", response.koResponse.startupSkills.join(','))
                         convo.setVar("fundability", Math.round((response.koResponse.fundability*100).toFixed(0)))
                         convo.setVar("freshness" , response.koResponse.freshness_criteria);
@@ -1248,12 +1180,10 @@ module.exports = function(controller) {
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
                             "pretext": "StartIQ Analysis of your idea",
-                            // "author_name": "{{{vars.idea_name}}}",
                             "author_link": "http://flickr.com/bobby/",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
                             "title": "{{{vars.idea_description}}}",
                             "title_link": "https://api.slack.com/",
-                            // "text": "idea desc lorem ipsum upsu sdl sdlkfj sdlfkj idea desc lorem ipsum upsu sdl sdlkfj sdlfkj",
                             "fields": [
                                  {
                                     "title": "Problem Solved",
@@ -1309,7 +1239,6 @@ module.exports = function(controller) {
                             "thumb_url": "http://example.com/path/to/thumb.png",
                             "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                            // "ts": 123456789
                         }
                     ]
                 },"deepdive_completed_thread");

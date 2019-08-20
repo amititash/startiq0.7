@@ -50,20 +50,6 @@ module.exports = function(controller) {
                         analysis_result = response.data;
                         let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${analysis_result._id}`);
                         imageUrl = snapshotResponse.data.image;
-                        // bot.reply(message, {
-                        //     attachments : [
-                        //         {
-                        //             "type": "image",
-                        //             "title": {
-                        //                 "type": "plain_text",
-                        //                 "text": "image1",
-                        //                 "emoji": true
-                        //             },
-                        //             "image_url": imageUrl,
-                        //             "alt_text": "image1"
-                        //         }
-                        //     ]  
-                        // })
                     }   
                     catch(e) {
                         console.log(e.message);
@@ -172,46 +158,6 @@ module.exports = function(controller) {
                     ]
                 },"results_thread")
                 
-
-                // convo.addMessage({
-                //     text : "Freshness: {{vars.freshness}}\nFundability: {{vars.fundability}}%"
-                // },"results_thread");
-
-                // convo.addMessage({
-                //     text : "Categories 1\n{{vars.idea_categories_1}}\n"
-                // },"results_thread");
-                
-
-                // convo.addMessage({
-                //     text : "Categories :\n{{vars.idea_categories_2}}\n"
-                // },"results_thread");
-
-                // convo.addMessage({
-                //     text : "Categories 2\n{{vars.idea_categories_3}}\n"
-                // },"results_thread");
-
-                // convo.addMessage({
-                //     text : "Startup skills:\n{{vars.startup_skills}}"
-                // },"results_thread");
-
-                // convo.addMessage({
-                //     text : "Competitor size: {{vars.competitor_size}}"
-                // },"results_thread");
-
-                // convo.addMessage({
-                //     attachments : [
-                //         {
-                //             "type": "image",
-                //             "title": {
-                //                 "type": "plain_text",
-                //                 "text": "image1",
-                //                 "emoji": true
-                //             },
-                //             "image_url": imageUrl,
-                //             "alt_text": "image1"
-                //         }
-                //     ]
-                // },"results_thread");
 
 
                 convo.addMessage({

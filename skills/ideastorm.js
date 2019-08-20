@@ -2,7 +2,23 @@ const store = require('../store/store');
 const axios = require('axios');
 
 
-const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+1}`)
+const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+1}`);
+
+
+const storeKo = (url, data) => {
+    return new Promise( async (resolve, reject) => {
+        let savedKo = {};
+        try {
+            let response = await axios.post(url, data);
+            savedKo = response.data;
+        }
+        catch(e){
+            console.log(e);
+            reject(e);
+        }
+        resolve(savedKo);        
+    })
+}
 
 module.exports = function(controller) {
     controller.on('direct_message , direct_mention', function(bot, message) {
@@ -36,7 +52,7 @@ module.exports = function(controller) {
                         },
                         {
                             default : true,
-                            callback : function(res, convo) {
+                            callback : async function(res, convo) {
                                 if(res.text.length < 140){
                                     bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
                                     convo.repeat();
@@ -49,25 +65,17 @@ module.exports = function(controller) {
                                     ideaName : res.text.slice(0,200)
                                 }
                                 console.log(url);
-                                axios.post(url,data)
-                                    .then( response => {
-                                        console.log("data was saved successfully");
-                                        convo.gotoThread("idea_input_thread");
-    
-                                        //Here, we are randomly choosing a particular response from the chosen set of response.
-                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
-    
-                                        convo.next();
-                                    })
-                                    .catch( e => {
-                                        console.log("some error occurred");
-                                        convo.gotoThread("idea_input_thread");
-    
-                                        //Here, we are randomly choosing a particular response from the chosen set of response.
-                                        convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
-                                        
-                                        convo.next(e);
-                                    })
+                                try {
+                                    let savedKo = await storeKo(url, data);
+                                    console.log("data was saved successfully");
+                                }
+                                catch(e){
+                                    console.log(e);
+                                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
+                                }
+                                convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
+                                convo.gotoThread("idea_input_thread");
+                                convo.next();
                             }
                         }
                     ],
@@ -100,7 +108,7 @@ module.exports = function(controller) {
                         },
                         {
                             default : true,
-                            callback : function(res, convo) {
+                            callback : async function(res, convo) {
                                 if(res.text.length < 140){
                                     bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
                                     convo.repeat();
@@ -113,17 +121,16 @@ module.exports = function(controller) {
                                     ideaName : res.text.slice(0,200),
                                 }
                                 console.log(url, data);
-                                axios.post(url,data)
-                                    .then( response => {    
-                                        console.log("data was saved successfully");
-                                        convo.gotoThread("idea_input_thread");
-                                        convo.next();
-                                    })
-                                    .catch( e => {
-                                        console.log("some error occurred");
-                                        convo.gotoThread("idea_input_thread");
-                                        convo.next(e);
-                                    })
+                                try {
+                                    const savedKo = await storeKo(url, data);
+                                    console.log("data was saved successfully");
+                                }
+                                catch(e){
+                                    console.log("some error occurred");
+                                }
+                                convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
+                                convo.gotoThread("idea_input_thread");
+                                convo.next();
                             }   
                         }
                     ]);

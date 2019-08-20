@@ -28,6 +28,7 @@ module.exports = function(controller){
       
 
     // controller.middleware.ingest.use( function(bot, message, res, next){
+    //     console.log(message.text);
     //     if(message.event.text.length > 250 ){
     //         console.log(message);
     //         console.log("************************************");

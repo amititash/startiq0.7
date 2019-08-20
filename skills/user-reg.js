@@ -400,24 +400,24 @@ module.exports = function(controller) {
                     {
                         pattern : "full stack developer",
                         callback : function(res, convo) {
-                            userInfo.founderRole = res.text;
-                            convo.gotoThread("full_stack_developer_thread");
+                            userInfo.founderRole = "full stack developer";
+                            convo.gotoThread("profession_thread");
                             convo.next();
                         }
                     },
                     {
                         pattern : "marketing maven",
                         callback : function(res, convo) {
-                            userInfo.founderRole = res.text;
-                            convo.gotoThread("marketing_maven_thread");
+                            userInfo.founderRole = "marketing maven";
+                            convo.gotoThread("profession_thread");
                             convo.next();
                         }
                     },
                     {
                         pattern : "the manager",
                         callback : function(res, convo) {
-                            userInfo.founderRole = res.text;
-                            convo.gotoThread("manager_thread");
+                            userInfo.founderRole = "the manager";
+                            convo.gotoThread("profession_thread");
                             convo.next();
                         }
                     },
@@ -436,16 +436,43 @@ module.exports = function(controller) {
                 "build_profile_thread");
 
 
-                convo.beforeThread("full_stack_developer_thread", function(convo, next){
-                    skillMap["1"] = "Javascript, Node etc.";
-                    skillMap["2"] = "Ruby etc.";
-                    skillMap["3"] = "C++ etc."
-                    next(); 
+
+
+                convo.beforeThread("profession_thread", function(convo,next){
+                    let professionString = "";
+                    switch(userInfo.founderRole){
+                        case "full stack developer" : 
+                            skillMap["1"] = "Javascript, Node etc.";
+                            skillMap["2"] = "Ruby etc.";
+                            skillMap["3"] = "C++ etc.";
+                            relatedSkillsString = "1. Javascript, node etc.\n2. Ruby etc.\n3. C++ etc."
+                            convo.setVar("related_skills", relatedSkillsString);
+                            break;
+
+                        case "marketing maven":
+                            skillMap["1"] = "SEO and Digital advertising";
+                            skillMap["2"] = "B2B and SaaS relationships";
+                            skillMap["3"] = "Sales team handling and experience";
+                            skillMap["4"] = "Consumer Internet marketing";
+                            relatedSkillsString = "1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
+                            convo.setVar("related_skills", relatedSkillsString);
+                            break;
+                        
+                        case "the manager":
+                            skillMap["1"] = "team management";
+                            skillMap["2"] = "project management";
+                            skillMap["3"] = "pitch decks and customer interfacing";
+                            skillMap["4"] = "hiring";
+                            relatedSkillsString = "1. SEO and Digital advertising\n2. B2B and SaaS relationships\n3. Sales team handling and experience\n4. Consumer Internet marketing"
+                            convo.setVar("related_skills", relatedSkillsString);
+                            break;
+                    }
+                    next();
                 })
 
 
                 convo.addQuestion({
-                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. Javascript, Node etc.\n2. Ruby etc.\n3. C++ etc."
+                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n{{{vars.related_skills}}}"
                 },
                 [
                     {
@@ -472,86 +499,125 @@ module.exports = function(controller) {
                     }
                 ],
                 {},
-                "full_stack_developer_thread");
+                "profession_thread");
 
 
-                convo.beforeThread("manager_thread", function(convo, next){
-                    skillMap["1"] = "team management";
-                    skillMap["2"] = "project management";
-                    skillMap["3"] = "pitch decks and customer interfacing";
-                    skillMap["4"] = "hiring";
-                    next(); 
-                })
-
-                convo.addQuestion({
-                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let numbers = res.text.split(',');
-                            let founderSkills = [];
-                            numbers.forEach( number => {
-                                if(skillMap[`${number}`]){
-                                    founderSkills.push(skillMap[`${number}`]);
-                                }
-                            }) 
-                            userInfo.founderSkills = founderSkills;
-                            convo.gotoThread("connections_thread");
-                            convo.next();
-                        }
-                    }
-                ],
-                {},
-                "manager_thread");
+                // convo.beforeThread("full_stack_developer_thread", function(convo, next){
+                //     skillMap["1"] = "Javascript, Node etc.";
+                //     skillMap["2"] = "Ruby etc.";
+                //     skillMap["3"] = "C++ etc."
+                //     next(); 
+                // })
 
 
-                convo.beforeThread("marketing_maven_thread", function(convo, next){
-                    skillMap["1"] = "SEO and Digital advertising";
-                    skillMap["2"] = "B2B and SaaS relationships";
-                    skillMap["3"] = "Sales team handling and experience";
-                    skillMap["4"] = "Consumer Internet marketing";
-                    next(); 
-                })
+                // convo.addQuestion({
+                //     text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. Javascript, Node etc.\n2. Ruby etc.\n3. C++ etc."
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : function(res, convo) {
+                //             let numbers = res.text.split(',');
+                //             let founderSkills = [];
+                //             numbers.forEach( number => {
+                //                 if(skillMap[`${number}`]){
+                //                     founderSkills.push(skillMap[`${number}`]);
+                //                 }
+                //             }) 
+                //             userInfo.founderSkills = founderSkills;
+                //             convo.gotoThread("connections_thread");
+                //             convo.next();
+                //         }
+                //     }
+                // ],
+                // {},
+                // "full_stack_developer_thread");
 
 
-                convo.addQuestion({
-                    text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. SEO and Digital advertising\n2. B2B and SaaS relationships\n3. Sales team handling and experience\n4. Consumer Internet marketing\n"
-                },
-                [
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let numbers = res.text.split(',');
-                            let founderSkills = [];
-                            numbers.forEach( number => {
-                                if(skillMap[`${number}`]){
-                                    founderSkills.push(skillMap[`${number}`]);
-                                }
-                            }) 
-                            userInfo.founderSkills = founderSkills;
-                            convo.gotoThread("connections_thread");
-                            convo.next();
-                        }
-                    }
-                ],
-                {},
-                "marketing_maven_thread");
+                // convo.beforeThread("manager_thread", function(convo, next){
+                //     skillMap["1"] = "team management";
+                //     skillMap["2"] = "project management";
+                //     skillMap["3"] = "pitch decks and customer interfacing";
+                //     skillMap["4"] = "hiring";
+                //     next(); 
+                // })
+
+                // convo.addQuestion({
+                //     text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. team management\n2. project management\n3. pitch decks and customer interfacing\n4. hiring"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : function(res, convo) {
+                //             let numbers = res.text.split(',');
+                //             let founderSkills = [];
+                //             numbers.forEach( number => {
+                //                 if(skillMap[`${number}`]){
+                //                     founderSkills.push(skillMap[`${number}`]);
+                //                 }
+                //             }) 
+                //             userInfo.founderSkills = founderSkills;
+                //             convo.gotoThread("connections_thread");
+                //             convo.next();
+                //         }
+                //     }
+                // ],
+                // {},
+                // "manager_thread");
+
+
+                // convo.beforeThread("marketing_maven_thread", function(convo, next){
+                //     skillMap["1"] = "SEO and Digital advertising";
+                //     skillMap["2"] = "B2B and SaaS relationships";
+                //     skillMap["3"] = "Sales team handling and experience";
+                //     skillMap["4"] = "Consumer Internet marketing";
+                //     next(); 
+                // })
+
+
+                // convo.addQuestion({
+                //     text : "Awesome. :+1: Let's dig a bit deeper into your skills. Which of these do you know?\n1. SEO and Digital advertising\n2. B2B and SaaS relationships\n3. Sales team handling and experience\n4. Consumer Internet marketing\n"
+                // },
+                // [
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : function(res, convo) {
+                //             let numbers = res.text.split(',');
+                //             let founderSkills = [];
+                //             numbers.forEach( number => {
+                //                 if(skillMap[`${number}`]){
+                //                     founderSkills.push(skillMap[`${number}`]);
+                //                 }
+                //             }) 
+                //             userInfo.founderSkills = founderSkills;
+                //             convo.gotoThread("connections_thread");
+                //             convo.next();
+                //         }
+                //     }
+                // ],
+                // {},
+                // "marketing_maven_thread");
 
 
                 convo.beforeThread("connections_thread", function(convo, next) {
