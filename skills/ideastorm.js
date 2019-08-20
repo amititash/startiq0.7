@@ -29,13 +29,77 @@ module.exports = function(controller) {
         }
 
         if(message.intent === "ideastorm_intent"){
-
+            let ideaCount = 0;
             if(ideastorm_replies.flag === "one_by_one") {
                 
                 bot.createConversation(message, function(err, convo) {
 
                     convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
-    
+                    convo.setVar("idea_count", 0);
+
+                    convo.say({
+                        text : "Alright, let's start!"
+                    });
+
+                    convo.say({
+                        text : "Research shows that to generate a great idea you should brainstorm as many ideas as possible."
+                    });
+
+                    convo.say({
+                        text : "A good idea isn't too long or too short. But it should, at least, tell us who your customer is, what you will do for them, and how you will get paid."
+                    });
+
+                    convo.say({
+                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further.",
+                    });
+
+                    convo.say({
+                        text : "Let's go.✏️"
+                    });
+
+                    convo.ask({
+                        text: "If you want to stop, please type 'cancel' at any time.",
+                    },
+                    [
+                        {
+                            pattern : bot.utterances.quit,
+                            callback : function( res, convo) {
+                                convo.gotoThread("exit_thread");
+                                convo.next();
+                            }
+                        },
+                        {
+                            default : true,
+                            callback : async function(res, convo) {
+                                if(res.text.length < 140){
+                                    bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    convo.repeat();
+                                    return ;
+                                }
+                                let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+                                let data = {
+                                    ideaOwner : store.get(message.user),
+                                    ideaDescription : res.text,
+                                    ideaName : res.text.slice(0,200),
+                                }
+                                console.log(url, data);
+                                try {
+                                    const savedKo = await storeKo(url, data);
+                                    console.log("data was saved successfully");
+                                }
+                                catch(e){
+                                    console.log("some error occurred");
+                                }
+                                ideaCount ++;
+                                convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
+                                convo.gotoThread("idea_input_thread");
+                                convo.next();
+                            }   
+                        }
+                    ]);
+
+
+
                     convo.addQuestion({
                         text : "{{{vars.ideastorm_reply}}}"
                     },
@@ -43,10 +107,7 @@ module.exports = function(controller) {
                         {
                             pattern : bot.utterances.quit,
                             callback : function(res, convo) {
-                                console.log("cancelled");
-                                convo.say({
-                                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
-                                })
+                                convo.gotoThread("exit_thread");
                                 convo.next();
                             }
                         },
@@ -73,6 +134,7 @@ module.exports = function(controller) {
                                     console.log(e);
                                     convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                                 }
+                                ideaCount++;
                                 convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                                 convo.gotoThread("idea_input_thread");
                                 convo.next();
@@ -82,58 +144,22 @@ module.exports = function(controller) {
                     {},
                     "idea_input_thread");
 
-
-                    convo.say({
-                        text : "The first step in generating an 'amazing' idea is generating 'many' ideas."
-                    });
-
-
-                    convo.say({
-                        text : "A good idea description isn't too long or too short. It should be between 140 to 256 characters. It describes what your business does, for what customer, why and how your product or service benefits that customer in a way that matters."
+                    convo.beforeThread("exit_thread", function(convo, next){
+                        convo.setVar("idea_count", ideaCount);
+                        next();
                     })
 
-        
-                    convo.ask({
-                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further. Let's start.\nIf you want to stop, please type 'cancel'.",
-                    },
-                    [
-                        {
-                            pattern : bot.utterances.quit,
-                            callback : function( res, convo) {
-                                convo.sayFirst({
-                                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
-                                })
-                                convo.next();
-                            }
-                        },
-                        {
-                            default : true,
-                            callback : async function(res, convo) {
-                                if(res.text.length < 140){
-                                    bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
-                                    convo.repeat();
-                                    return ;
-                                }
-                                let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
-                                let data = {
-                                    ideaOwner : store.get(message.user),
-                                    ideaDescription : res.text,
-                                    ideaName : res.text.slice(0,200),
-                                }
-                                console.log(url, data);
-                                try {
-                                    const savedKo = await storeKo(url, data);
-                                    console.log("data was saved successfully");
-                                }
-                                catch(e){
-                                    console.log("some error occurred");
-                                }
-                                convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
-                                convo.gotoThread("idea_input_thread");
-                                convo.next();
-                            }   
-                        }
-                    ]);
+
+                    convo.addMessage({
+                        text : "Good job! You came up with {{{vars.idea_count}}} ideas in this session! The average person comes up with 6.3 ideas."
+                    },"exit_thread");
+
+
+                    convo.addMessage({
+                        text : "If you want to do a deep dive on one of your ideas type 'deepdive'💦."
+                    },"exit_thread");
+
+
                     convo.activate();
                 });
             }
