@@ -609,7 +609,6 @@ module.exports = function(controller) {
                 convo.beforeThread("choose_similar_companies_thread", async function(convo, next){
                     let similarCompaniesString = "";
                     try {
-                        console.log("XXXXXXXXXx", ideaObj.ideaDescription);
                         similarCompanies = await elasticSearchService.search(ideaObj.ideaDescription);
                         similarCompanies.forEach( (element,index) => {
                             similarCompaniesMap[`${index+1}`] = element._source.company_name

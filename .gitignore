@@ -7,3 +7,4 @@ config.json
 users.json
 key.json
 .env
+*.log

@@ -10,7 +10,6 @@ module.exports = function(controller) {
             let userInfo = {};
             let skillMap = {};
             let connectionsMap = {};
-            console.log("build intent");
 
             bot.createConversation(message, function(err, convo) {
 

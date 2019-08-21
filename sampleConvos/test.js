@@ -1,6 +1,5 @@
 module.exports = function(controller) {
     controller.hears(['test','poker'],'direct_message , interactive_message_callback', function(bot, message) {
-        console.log("wow");
         const attachment = [
             {
                 "text": "Choose a game to play",

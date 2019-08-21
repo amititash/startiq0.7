@@ -1,5 +1,6 @@
 const store = require('../store/store');
 const axios = require('axios');
+const logger = require('../utils/logger');
 
 
 const ideastorm_replies = require(`../assets/ideastorm_replies${Math.floor(Math.random()*1)+1}`);
@@ -22,7 +23,6 @@ const storeKo = (url, data) => {
 
 module.exports = function(controller) {
     controller.on('direct_message , direct_mention', function(bot, message) {
-
         if(!store.get(message.user)) {
             console.log("User not found in local storage.");
             return ;
@@ -33,6 +33,11 @@ module.exports = function(controller) {
             if(ideastorm_replies.flag === "one_by_one") {
                 
                 bot.createConversation(message, function(err, convo) {
+
+                    logger.info(message.text,{
+                        userid : message.user,
+                        convo : true
+                    });
 
                     convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                     convo.setVar("idea_count", 0);
@@ -158,6 +163,15 @@ module.exports = function(controller) {
                     convo.addMessage({
                         text : "If you want to do a deep dive on one of your ideas type 'deepdive'💦."
                     },"exit_thread");
+
+
+                    convo.on('end', function(convo){
+                        console.log("doomsday");
+                        logger.info(message.text,{
+                            userid : message.user,
+                            convo : false
+                        });
+                    })
 
 
                     convo.activate();

@@ -59,6 +59,7 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
 }
 
 var Botkit = require('botkit');
+const winston = require('winston');
 var debug = require('debug')('botkit:main');
 const dashbot = require('dashbot')(process.env.dashbot_api_token).slack;
 const dialogflowMiddleware = require('./utils/dialogflow');

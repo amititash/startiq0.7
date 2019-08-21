@@ -1,8 +1,10 @@
+const fs = require('fs');
+const logger = require('../utils/logger');
+
 module.exports = function(controller){
     controller.middleware.receive.use( function(bot, message, next){
-
         const interrupt_intents = ["default_welcome_intent"];
-        if(interrupt_intents.includes(message.intent)){
+        if(interrupt_intents.includes(message.intent) ){
             let custom_event = "";
             switch(message.intent){
                 case "help_intent" :
@@ -23,21 +25,23 @@ module.exports = function(controller){
         }
     })
 
+    controller.middleware.receive.use( function(bot, message, next){
+        console.log(message);
+        logger.info(message.text,{
+            nature : "received_message",
+            userId : message.user
+        });
+        next();
+    })
 
 
-      
+    controller.middleware.send.use(function(bot, message, next) {
+        logger.info(message.text, {
+            nature : "sent_message",
+            userId : message.to
+        })
+        next();
+    });
+    
 
-    // controller.middleware.ingest.use( function(bot, message, res, next){
-    //     console.log(message.text);
-    //     if(message.event.text.length > 250 ){
-    //         console.log(message);
-    //         console.log("************************************");
-    //         controller.trigger('too_long_message_event', [bot, message.event]);
-    //     }
-    //     else {
-    //         next();
-    //     }
-    //     console.log("woah");   
-    //     next();
-    // })
 }

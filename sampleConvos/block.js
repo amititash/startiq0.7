@@ -1,7 +1,6 @@
 module.exports = function(controller) {
 
     controller.hears('block', 'direct_message, interactive_message_callback', function(bot, message) {
-        console.log("wow");
         const content = {
             // "text" : "wow",
             blocks: [
