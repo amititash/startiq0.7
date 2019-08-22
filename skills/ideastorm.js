@@ -156,12 +156,12 @@ module.exports = function(controller) {
 
 
                     convo.addMessage({
-                        text : "Good job! You came up with {{{vars.idea_count}}} ideas in this session! The average person comes up with 6.3 ideas."
+                        text : "You came up with {{{vars.idea_count}}} ideas in this session! The average person comes up with 6.3 ideas."
                     },"exit_thread");
 
 
                     convo.addMessage({
-                        text : "If you want to do a deep dive on one of your ideas type 'deepdive'💦."
+                        text : "If you want to do a deep dive on one of your ideas type 'deepdive' 💦."
                     },"exit_thread");
 
 

@@ -109,7 +109,7 @@ module.exports = function(controller) {
                     },"default");
 
                     convo.addQuestion({
-                        text : "Choose one or type 'search' to find an idea using keywords.✏️"
+                        text : "Choose one or type 'search' to find an idea using keywords. ✏️"
                     },
                     [
                         {
@@ -565,7 +565,7 @@ module.exports = function(controller) {
                 "idea_selected_thread");
 
                 convo.addMessage({
-                    text : "Ok, great. {{{vars.idea_short_name}}} looks like it belongs to one of the following product categories. If any of these seem right, enter the numbers below and separate each number by a comma(eg. '1,2,4')."
+                    text : "Ok, great. {{{vars.idea_short_name}}} looks like it belongs to one of the following product categories. If any of these seem right, enter the numbers below and separate each number by a comma (eg. '1,2,4')."
                 },"choose_idea_categories_thread");
 
                 convo.addQuestion({
@@ -1449,7 +1449,7 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread");
 
                 convo.addQuestion({
-                    text : "Wow! How much do you think a {{{vars.primary_customer}}} is willing to pay per year in USD for your product?"
+                    text : "Wow! How much do you think {{{vars.primary_customer}}} are willing to pay per year in USD for your product?"
                 },
                 [
                     {
