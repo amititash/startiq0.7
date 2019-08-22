@@ -13,16 +13,16 @@ module.exports = function(controller) {
             let imageUrl = "";
             bot.createConversation(message, function(err, convo) {
                 convo.addQuestion({
-                    text : "Please enter your idea. It should be between 140 to 256 characters."
+                    text : "Please enter your idea. It should be between 75 to 256 characters."
                 },
                 [
                     {
                         default : true,
                         callback : function(res, convo) {
                             idea = res.text;
-                            if(idea.length < 140){
+                            if(idea.length < 75){
                                 bot.reply(message, {
-                                    text : "The description should have atleast 140 characters. Please re-enter."
+                                    text : "The description should have atleast 75 characters. Please re-enter."
                                 })
                                 convo.repeat();
                             }

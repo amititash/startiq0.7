@@ -34,10 +34,16 @@ module.exports = function(controller) {
                 
                 bot.createConversation(message, function(err, convo) {
 
-                    logger.info(message.text,{
-                        userid : message.user,
-                        convo : true
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : true,
+                            userId : message.user
+                        }
                     });
+                    
+                   
 
                     convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                     convo.setVar("idea_count", 0);
@@ -76,8 +82,8 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : async function(res, convo) {
-                                if(res.text.length < 140){
-                                    bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
+                                if(res.text.length < 75){
+                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type 'cancel'.")
                                     convo.repeat();
                                     return ;
                                 }
@@ -119,8 +125,8 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : async function(res, convo) {
-                                if(res.text.length < 140){
-                                    bot.reply(message, "An idea description should contain a minimum of 140 characters. If you want to stop entering ideas, type 'cancel'.")
+                                if(res.text.length < 75){
+                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type 'cancel'.")
                                     convo.repeat();
                                     return ;
                                 }
@@ -166,12 +172,16 @@ module.exports = function(controller) {
 
 
                     convo.on('end', function(convo){
-                        console.log("doomsday");
-                        logger.info(message.text,{
-                            userid : message.user,
-                            convo : false
+                        logger.log({
+                            level : "info",
+                            message : message.text,
+                            metadata : {
+                                convo : false,
+                                userId : message.user
+                            }
                         });
                     })
+
 
 
                     convo.activate();

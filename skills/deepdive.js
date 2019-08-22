@@ -184,7 +184,7 @@ module.exports = function(controller) {
                         ideaByFundabilityAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            "author_name": `${index+1}. ${element.ideaName}`,
+                            "author_name": `${index+1}. ${element.ideaDescription}`,
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
                             "fields": [
                                 {
@@ -260,7 +260,7 @@ module.exports = function(controller) {
                         ideaByFreshnessAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            "author_name": `${index+1}. ${element.ideaName}`,
+                            "author_name": `${index+1}. ${element.ideaDescription}`,
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
                             "fields": [
                                 {
@@ -339,7 +339,7 @@ module.exports = function(controller) {
                         ideaByMostRecentAttachment.attachments.push({
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
-                            "author_name": `${index+1}. ${element.ideaName}`,
+                            "author_name": `${index+1}. ${element.ideaDescription}`,
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
@@ -427,7 +427,7 @@ module.exports = function(controller) {
                                     ideaByKeywordAttachment.attachments.push({
                                         "fallback": "Required plain-text summary of the attachment.",
                                         "color": "#36a64f",
-                                        "author_name": `${index+1}. ${element.ideaName}`,
+                                        "author_name": `${index+1}. ${element.ideaDescription}`,
                                         "author_icon": "http://flickr.com/icons/bobby.jpg",
                                         "image_url": "http://my-website.com/path/to/image.jpg",
                                         "thumb_url": "http://example.com/path/to/thumb.png",
@@ -591,7 +591,7 @@ module.exports = function(controller) {
                                 }
                             })
                             console.log("Categories chosen: ", chosenCategories);
-                            convo.setVar("user_categories", chosenCategories.join(','))
+                            convo.setVar("user_categories", chosenCategories.join('\n'))
 
 
                             convo.transitionTo("choose_similar_companies_thread","Cool. Let's do some analysis.");
@@ -613,15 +613,19 @@ module.exports = function(controller) {
                         similarCompanies.forEach( (element,index) => {
                             similarCompaniesMap[`${index+1}`] = element._source.company_name
                             similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
+                            let companyDescription = element._source.description;
+                            companyDescription = companyDescription.slice(0,200);
+                            companyDescription = companyDescription.toLowerCase();
+                            companyDescription = companyDescription.charAt(0).toUpperCase() + companyDescription.slice(1);
                             similarCompaniesAttachment.attachments.push({
                                 "fallback": "Required plain-text summary of the attachment.",
                                 "color": "#36a64f",
                                 "author_name": `${index+1}. ${element._source.company_name}`,
                                 "author_link": `http://${element._source.domain}`,
                                 "author_icon": "http://flickr.com/icons/bobby.jpg",
-                                "title": `${element._source.company_name}`,
-                                "title_link": `http://${element._source.domain}`,
-                                "text": `${element._source.description.slice(0,200)}`,
+                                // "title": `${element._source.company_name}`,
+                                // "title_link": `http://${element._source.domain}`,
+                                "text": `${companyDescription}`,
                                 "image_url": "http://my-website.com/path/to/image.jpg",
                                 "thumb_url": "http://example.com/path/to/thumb.png",
                                 "footer": "StartIQ API",
@@ -689,339 +693,10 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Cool, good to see that I know what I'm doing.😇",
+                    text : "Cool, good to see that I know what I'm doing. 😇",
                     action : "add_missed_similar_companies_thread"
                 },"choose_similar_companies_thread");
 
-             
-
-                
-
-
-
-
-
-
-
-
-                // convo.addQuestion({
-                //     text : "What problem are you solving for this customer? Try to be concrete about it? (see here for an example of a strong problem statement)"
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : async function(res, convo) {
-                //             let similarCompanies = [];
-                //             let problem = res.text || "";
-                //             ideaObj.problemsSolved = problem;
-                //             convo.setVar("problem_solved", problem);
-                //             let similarCompaniesString = "";
-                        
-                //             try {
-                //                 similarCompanies = await elasticSearchService.search(problem);
-                //                 similarCompanies.forEach( (element,index) => {
-                //                     similarCompaniesMap[`${index+1}`] = element._source.company_name
-                //                     similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
-                //                     similarCompaniesAttachment.attachments.push({
-                //                         "fallback": "Required plain-text summary of the attachment.",
-                //                         "color": "#36a64f",
-                //                         "author_name": `${index+1}. ${element._source.company_name}`,
-                //                         "author_link": `http://${element._source.domain}`,
-                //                         "author_icon": "http://flickr.com/icons/bobby.jpg",
-                //                         "title": `${element._source.company_name}`,
-                //                         "title_link": `http://${element._source.domain}`,
-                //                         "text": `${element._source.description.slice(0,200)}`,
-                //                         "image_url": "http://my-website.com/path/to/image.jpg",
-                //                         "thumb_url": "http://example.com/path/to/thumb.png",
-                //                         "footer": "StartIQ API",
-                //                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                //                     })
-                //                 })
-                //             }
-                //             catch(e) {
-                //                 console.log("Error in elasticsearch", e)
-                //             }
-
-                //             if(!similarCompanies.length){
-                //                 similarCompaniesString = "No similar companies found."
-                //                 convo.setVar("similar_companies", similarCompaniesString);
-                //                 convo.transitionTo("add_missed_similar_companies_thread", "I did not find any similar companies. Did I miss any company? Please enter the name of the companies. If there are multiple, enter a comma-separated list. Please enter a comma-separated list of corresponding numbers.")
-                //             }
-                //             else {
-                //                 convo.setVar("similar_companies", similarCompaniesString);
-                //                 convo.gotoThread("choose_similar_companies_thread");
-                //             }
-                            
-                //             convo.next();
-                //         }
-                //     }     
-                // ],
-                // {},
-                // "choose_idea_categories_thread");
-
-
-
-                // convo.addQuestion({
-                //     text : "A well-thought-out business idea answers five big questions well. We'll help you answer them and provide some data-driven insights to help you along. Let's start.",
-                //     attachments:[
-                //         {
-                //             title: `Are you selling a...`,
-                //             callback_id: 'product_or_service',
-                //             attachment_type: 'default',
-                //             actions: [
-                //                 {
-                //                     "name":"product",
-                //                     "text": "Product",
-                //                     "value": "product",
-                //                     "type": "button",
-                //                 },
-                //                 {
-                //                     "name" : "service",
-                //                     "text": "Service",
-                //                     "value": "service",
-                //                     "type": "button",
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         pattern : "product",
-                //         callback : function(res,cov){
-                //             console.log("Selling a: ", res.text);
-                //             ideaObj.sellingTo = res.text;
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         pattern : "service",
-                //         callback : function(res, convo) {
-                //             console.log("Selling a: ",res.text);
-                //             ideaObj.sellingTo = res.text;
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : function(res, convo) {
-                //             bot.reply(message, {
-                //                 text : "Please use the buttons below for replying to this question"
-                //             })
-                //             convo.repeat();
-                //             convo.next();
-                //         }
-                //     }
-                // ],
-                // {},
-                // "choose_idea_categories_thread");
-
-
-                // convo.addQuestion({
-                //     text : "Most businesses serve one of these customer segments.",
-                //     attachments:[
-                //         {
-                //             title: `Which type of customers do you serve?`,
-                //             callback_id: 'customer_segment',
-                //             attachment_type: 'default',
-                //             actions: [
-                //                 {
-                //                     "name":"business",
-                //                     "text": "Business (i.e., B2B)",
-                //                     "value": "business",
-                //                     "type": "button",
-                //                 },
-                //                 {
-                //                     "name" : "individual customer",
-                //                     "text": "Individual Customer",
-                //                     "value": "individual customer",
-                //                     "type": "button",
-                //                 },
-                //                 {
-                //                     "name" : "government",
-                //                     "text": "Government",
-                //                     "value": "government",
-                //                     "type": "button",
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         pattern : "business",
-                //         callback : function(res,cov){
-                //             console.log("Chosen customer segment: ", res.text);
-                //             convo.setVar("chosen_customer_segment", "business");
-                //             ideaObj.chosenCustomerSegment = res.text;
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         pattern : "individual customer",
-                //         callback : function(res, convo) {
-                //             console.log("Chosen customer segment: ",res.text);
-                //             convo.setVar("chosen_customer_segment", "individual customer");
-                //             ideaObj.chosenCustomerSegment = res.text;
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         pattern : "government",
-                //         callback : function(res, convo) {
-                //             console.log("Chosen customer segment: ",res.text);
-                //             convo.setVar("chosen_customer_segment", "government");
-                //             ideaObj.chosenCustomerSegment = res.text;
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : function(res, convo) {
-                //             bot.reply(message, {
-                //                 text : "Please use the buttons below for replying to this question"
-                //             })
-                //             convo.repeat();
-                //             convo.next();
-                //         }
-                //     }
-                // ],
-                // {},
-                // "choose_idea_categories_thread");
-
-
-                // convo.addQuestion({
-                //     text : "Got it! You are selling to a {{{vars.chosen_customer_segment}}}. Can you describe the industry or segment that this {{{vars.chosen_customer_segment}}} is in? (e.g. Private schools 'sell' to parents, but children 'use' the service.)"
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : function(res, convo) {
-                //             convo.setVar("industry_of_chosen_segment", res.text);
-                //             ideaObj.industry_of_chosen_segment = res.text;
-                //             console.log("Industry of chosen segment: ", res.text);
-                //             convo.next();
-                //         }
-                //     }
-                // ],
-                // {},
-                // "choose_idea_categories_thread");
-
-                // convo.addQuestion({
-                //     text : "Who are the end-users of your product?"
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : function(res, convo) {
-                //             convo.setVar("product_end_users", res.text);
-                //             ideaObj.product_end_users = res.text;
-                //             console.log("End user: ",res.text);
-                //             convo.next();
-                //         }
-                //     }  
-                // ],
-                // {},
-                // "choose_idea_categories_thread");
-
-                // convo.addQuestion({
-                //     text : "What problem are you solving for this customer? Try to be concrete about it? (see here for an example of a strong problem statement)"
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo) {
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : async function(res, convo) {
-                //             let similarCompanies = [];
-                //             let problem = res.text || "";
-                //             ideaObj.problemsSolved = problem;
-                //             convo.setVar("problem_solved", problem);
-                //             let similarCompaniesString = "";
-                        
-                //             try {
-                //                 similarCompanies = await elasticSearchService.search(problem);
-                //                 similarCompanies.forEach( (element,index) => {
-                //                     similarCompaniesMap[`${index+1}`] = element._source.company_name
-                //                     similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
-                //                     similarCompaniesAttachment.attachments.push({
-                //                         "fallback": "Required plain-text summary of the attachment.",
-                //                         "color": "#36a64f",
-                //                         "author_name": `${index+1}. ${element._source.company_name}`,
-                //                         "author_link": `http://${element._source.domain}`,
-                //                         "author_icon": "http://flickr.com/icons/bobby.jpg",
-                //                         "title": `${element._source.company_name}`,
-                //                         "title_link": `http://${element._source.domain}`,
-                //                         "text": `${element._source.description.slice(0,200)}`,
-                //                         "image_url": "http://my-website.com/path/to/image.jpg",
-                //                         "thumb_url": "http://example.com/path/to/thumb.png",
-                //                         "footer": "StartIQ API",
-                //                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                //                     })
-                //                 })
-                //             }
-                //             catch(e) {
-                //                 console.log("Error in elasticsearch", e)
-                //             }
-
-                //             if(!similarCompanies.length){
-                //                 similarCompaniesString = "No similar companies found."
-                //                 convo.setVar("similar_companies", similarCompaniesString);
-                //                 convo.transitionTo("add_missed_similar_companies_thread", "I did not find any similar companies. Did I miss any company? Please enter the name of the companies. If there are multiple, enter a comma-separated list. Please enter a comma-separated list of corresponding numbers.")
-                //             }
-                //             else {
-                //                 convo.setVar("similar_companies", similarCompaniesString);
-                //                 convo.gotoThread("choose_similar_companies_thread");
-                //             }
-                            
-                //             convo.next();
-                //         }
-                //     }     
-                // ],
-                // {},
-                // "choose_idea_categories_thread");
-
-                
 
 
                 convo.addQuestion({
@@ -1178,9 +853,9 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            if(res.text.length< 140){
+                            if(res.text.length< 75){
                                 bot.reply(message, {
-                                    text : "The description should have atleast 140 characters. Please re-enter."
+                                    text : "The description should have atleast 75 characters. Please re-enter."
                                 })
                                 convo.repeat();
                             }
@@ -1349,7 +1024,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Got it! You are selling your {{{vars.startup_type}}} to a {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millenials, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
+                    text : "Got it! You are selling your {{{vars.startup_type}}} to a {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millenial, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
                 },
                 [
                     {
@@ -1489,7 +1164,7 @@ module.exports = function(controller) {
                 },"chosen_top_competitor_thread");
 
                 convo.addMessage({
-                    text : "Let's start with salaries. Based on how you describe your company you might need the following team members. I've included some estimates of their likely salaries too.\n1. Manager : 100000$\n2. Engineer : 80000$"
+                    text : "Let's start with salaries. Based on how you describe your company you might need the following team members. I've included some estimates of their likely salaries too.\n1. Manager : $100,000\n2. Engineer : $80,000"
                 },"chosen_top_competitor_thread")
 
 
@@ -1525,7 +1200,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Based on our calculations, you should expect your annual costs to be approximately $1,000,000. Obviously the costs can be higher or lower depending on location or other factors. But this is a good place to start."
+                    text : "Based on our calculations, you should expect your annual costs to be approximately $1,000,000. Obviously, the costs can be higher or lower depending on location or other factors. But this is a good place to start."
                 },"chosen_top_competitor_thread");
 
 
@@ -1563,7 +1238,7 @@ module.exports = function(controller) {
                 // },"chosen_top_competitor_thread");
 
                 convo.addMessage({
-                    text : "Hang on a sec, while I analyze your responses using my AI powers...",
+                    text : "We have done quite a bit of analysis. Hang on a sec, while I analyze your responses using my AI powers and create an idea report for you...",
                     action : "deepdive_completed_thread"
                 },"chosen_top_competitor_thread");
 
@@ -1621,7 +1296,7 @@ module.exports = function(controller) {
                                     "short": false
                                 },
                                 {
-                                    "title": "Fundability probability",
+                                    "title": "Fundability",
                                     "value": "{{{vars.fundability}}}%",
                                     "short": false
                                 },
@@ -1636,15 +1311,15 @@ module.exports = function(controller) {
                                     "short": false
                                 }
                                 ,
-                                {
-                                    "title": "User Categories",
-                                    "value": "{{{vars.user_categories}}}",
-                                    "short": false
-                                }
+                                // {
+                                //     "title": "User Categories",
+                                //     "value": "{{{vars.user_categories}}}",
+                                //     "short": false
+                                // }
                                 ,
                                 {
                                     "title": "Idea Category",
-                                    "value": "{{{vars.idea_categories}}}",
+                                    "value": "{{{vars.user_categories}}}",
                                     "short": false
                                 }
                                 ,

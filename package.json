@@ -29,6 +29,7 @@
     "querystring": "^0.2.0",
     "request": "^2.79.0",
     "winston": "^3.2.1",
+    "winston-mongodb": "^5.0.0",
     "wordfilter": "^0.2.6"
   },
   "devDependencies": {},

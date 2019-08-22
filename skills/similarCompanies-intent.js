@@ -48,6 +48,10 @@ module.exports = function(controller) {
                             else {
                                 similarCompanies.forEach( (element,index) => {
                                     similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
+                                    let companyDescription = element._source.description;
+                                    companyDescription = companyDescription.slice(0,200);
+                                    companyDescription = companyDescription.toLowerCase();
+                                    companyDescription = companyDescription.charAt(0).toUpperCase() + companyDescription.slice(1);
                                     attachment.push({
                                         "fallback": "Required plain-text summary of the attachment.",
                                         "color": "#36a64f",
@@ -57,7 +61,7 @@ module.exports = function(controller) {
                                         "author_icon": "http://flickr.com/icons/bobby.jpg",
                                         "title": `${element._source.domain}`,
                                         "title_link": `http://${element._source.domain}`,
-                                        "text": `${element._source.description}`,
+                                        "text": `${companyDescription}`,
                                         // "fields": [
                                         //     {
                                         //         "title": "Priority",
