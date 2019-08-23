@@ -199,7 +199,6 @@ module.exports = function(controller) {
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                         })
                     });
-                    console.log("Idea by fundability map", ideaByFundabilityMap);
                     convo.setVar("ideasByFundability" , ideaString)
                     next();
                 })
@@ -275,7 +274,6 @@ module.exports = function(controller) {
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                         })  
                     });
-                    console.log("Idea by freshness map", ideaByFreshnessMap);
                     convo.setVar("ideasByFreshness" , ideaString)
                     next();
                 })
@@ -304,7 +302,6 @@ module.exports = function(controller) {
                                 console.log(chosenIdea);
                                 ideaObj.ideaDescription = chosenIdea;
                                 ideaObj.ideaName = chosenIdea.slice(0,200);
-                                console.log(ideaObj);
                                 convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
                             }
                             else {
@@ -347,7 +344,6 @@ module.exports = function(controller) {
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                         })
                     });
-                    console.log("idea by recent map", ideaByRecentMap);
                     convo.setVar("most_recent_ideas" , ideaString)
                     next();
                 })
@@ -376,7 +372,6 @@ module.exports = function(controller) {
                                 console.log(chosenIdea);
                                 ideaObj.ideaDescription = chosenIdea;
                                 ideaObj.ideaName = chosenIdea.slice(0,200);
-                                console.log(ideaObj);
                                 convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
                             }
                             else {
@@ -435,7 +430,6 @@ module.exports = function(controller) {
                                         "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                                     })
                                 });
-                                console.log("Idea by keyword search map", ideaByKeywordMap);
                                 convo.setVar("ideasByKeyword" , ideaString)
                             }   
                             convo.next();
@@ -470,7 +464,6 @@ module.exports = function(controller) {
                                 console.log(chosenIdea);
                                 ideaObj.ideaDescription = chosenIdea;
                                 ideaObj.ideaName = chosenIdea.slice(0,200);
-                                console.log(ideaObj);
                                 convo.transitionTo("idea_selected_thread",`You chose "${chosenIdea}"\n  `);
                             }
                             else {
@@ -539,7 +532,6 @@ module.exports = function(controller) {
                         ideaCategoriesMap[`${index+1}`] = category.topic;
                         ideaCategoriesString += `${index+1}. ${category.topic}\n`;
                     })
-                    console.log(ideaCategoriesMap,ideaCategoriesString);
                     convo.setVar("idea_categories", ideaCategoriesString);
 
 
@@ -683,7 +675,6 @@ module.exports = function(controller) {
                                     chosenCompanies.push(similarCompaniesMap[`${number}`]);
                                 }
                             })
-                            console.log(chosenCompanies);
                             convo.next();
                         }
                     }  
@@ -777,7 +768,6 @@ module.exports = function(controller) {
                             companies.forEach( company => {
                                 chosenCompanies.push(company);
                             })
-                            console.log("final companies chosen: ",chosenCompanies);
                             convo.gotoThread("choose_top_competitor_thread");
                             convo.next();
                         }

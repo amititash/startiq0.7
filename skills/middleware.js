@@ -31,7 +31,7 @@ module.exports = function(controller){
         }
         else {
             //code reaches here only if bot not in convo.
-            const interrupt_intents = ["default_welcome_intent"];
+            const interrupt_intents = ["help_intent", "default_welcome_intent"];
             if(interrupt_intents.includes(message.intent) ){
                 let custom_event = "";
                 switch(message.intent){
