@@ -3,11 +3,19 @@ const axios = require('axios');
 
 module.exports = function(controller){
     controller.middleware.receive.use( async function(bot, message, next){
-
         //checks the log to see if bot is in some convo
         let logData = [];
+        console.log(`${process.env.LOGGER_API_URL}/find`)
         try {
-            logData = await axios.get(`${process.env.LOGGER_API_URL}/convoLog`);
+            logData = await axios.post(`${process.env.LOGGER_API_URL}/find`, {
+                "query" : {
+                    "meta.convo" : {
+                        "$exists" : true
+                    },
+                    "meta.userId" : message.user
+                },
+                "sort" : "-timestamp"
+            });
             logData = logData.data;
         }
         catch(e){
