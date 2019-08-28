@@ -14,6 +14,15 @@ module.exports = function(controller) {
             let attachment = [];
             bot.createConversation(message, function(err, convo){
 
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : message.user
+                    }
+                });
+
                 convo.addQuestion({
                     text : "Please enter the idea and I will find out companies working on similar idea."
                 },
@@ -92,6 +101,19 @@ module.exports = function(controller) {
                     text : "I found following companies working on similar idea.",
                     attachments : attachment
                 },"results_thread");
+
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : message.user
+                        }
+                    });
+                })
                 
                 convo.activate();
             })

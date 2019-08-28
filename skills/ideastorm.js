@@ -28,7 +28,7 @@ module.exports = function(controller) {
             return ;
         }
 
-        if(message.intent === "ideastorm_intent"){
+        if(message.text === "ideastorm" || message.intent === "ideastorm_intent"){
             let ideaCount = 0;
             if(ideastorm_replies.flag === "one_by_one") {
                 
