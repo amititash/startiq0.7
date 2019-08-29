@@ -12,6 +12,18 @@ module.exports = function(controller) {
             let idea = "";
             let imageUrl = "";
             bot.createConversation(message, function(err, convo) {
+
+
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
+
+
                 convo.addQuestion({
                     text : "Please enter your idea. It should be between 75 to 256 characters."
                 },
@@ -161,6 +173,18 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "Some error occurred"
                 },"error_thread");
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
 
                 convo.activate();
 

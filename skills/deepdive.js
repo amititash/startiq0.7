@@ -1089,9 +1089,19 @@ module.exports = function(controller) {
                     },
                     {
                         default : true,
-                        callback : function(res, convo) {
-                            ideaObj.totalNumberOfUsers = res.text;
-                            convo.setVar("total_num_of_users", res.text)
+                        callback : async function(res, convo) {
+                            let numberString = res.text;
+                            let number = "";
+                            try {
+                                let response = await axios.get(`${process.env.NUMBER_CONVERTER_API_URL}/convert?text=${numberString}`)
+                                number = response.data.value
+                            }
+                            catch(e){
+                                console.log(e);
+                                return ;
+                            }
+                            ideaObj.totalNumberOfUsers = number;
+                            convo.setVar("total_num_of_users", number)
                             convo.next();
                         }
                     }
@@ -1112,9 +1122,19 @@ module.exports = function(controller) {
                     },
                     {
                         default : true,
-                        callback : function(res, convo) {
-                            ideaObj.pricePerUser = res.text;
-                            let predictedRevenue = 1000000;
+                        callback : async function(res, convo) {
+                            let numberString = res.text;
+                            let number = "";
+                            try {
+                                let response = await axios.get(`${process.env.NUMBER_CONVERTER_API_URL}/convert?text=${numberString}`);
+                                number = response.data.value;
+                            }
+                            catch(e){
+                                console.log(e);
+                                return ;
+                            }
+                            ideaObj.pricePerUser = number;
+                            let predictedRevenue = 0;
                             try{
                                 predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser);
                             }
@@ -1122,7 +1142,6 @@ module.exports = function(controller) {
                                 console.log("enter a numeric value for the number of users and price per user");
                             }
                             convo.setVar("predicted_revenue", predictedRevenue)
-
                             convo.next();
                         }
                     }

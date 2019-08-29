@@ -8,9 +8,34 @@ module.exports = function(controller) {
         }
         if(message.intent === "thank_intent"){
             bot.createConversation(message, function(err, convo){
+
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
+
+
                 convo.say({
                     text : "You are welcome."
                 })
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
+
+                
                 convo.activate();
             })
         }

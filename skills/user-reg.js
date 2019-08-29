@@ -19,6 +19,17 @@ module.exports = function(controller) {
                 console.log("error fetching slack data", e);
             }
             bot.createConversation(message, function(err, convo) {
+
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
+
+                
                 convo.setVar("user_name", userInfo.username);
                 convo.setVar("user_email", userInfo.email);
                 
@@ -80,6 +91,18 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "No problem, You can complete your registration process later."
                 },"early_exit_thread");
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
                 
                 
                 convo.activate();

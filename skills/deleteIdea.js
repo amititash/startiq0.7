@@ -69,6 +69,15 @@ module.exports = function(controller) {
             });
             bot.createConversation(message, function(err, convo){
 
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
+
                 if(!ideas.length){
                     convo.addMessage({
                         action : "no_existing_ideas_thread"
@@ -197,6 +206,18 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "Idea(s) successfully deleted."
                 },"successfully_deleted_thread");
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
 
                 convo.activate();
             })

@@ -12,6 +12,15 @@ module.exports = function(controller) {
         if(message.intent === "calculate_fundability_intent"){
             let attachment = [];
             bot.createConversation(message, function(err, convo){
+                
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
 
                 convo.addQuestion({
                     text : "Please enter the idea and I will find out the fundability score."
@@ -82,6 +91,19 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
                 },"early_exit_thread");
+
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
                 
                 convo.activate();
             })

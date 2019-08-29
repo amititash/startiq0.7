@@ -13,6 +13,15 @@ module.exports = function(controller) {
 
             bot.createConversation(message, function(err, convo) {
 
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
+
                 convo.ask({
                     text : "We can begin by developing a quick assessment of you as an entrepreneur or jump right into generating ideas.",
                     attachments:[
@@ -398,6 +407,18 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "That is all for now. I have a good sense of your skills. If you want more tools to help you understand yourself better as a founder, just type 'founder'. Otherwise, you can start developing ideas by typing 'ideastorm' in the prompt."
                 },"user_reg_complete_thread");
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
                 
 
                 convo.activate();
