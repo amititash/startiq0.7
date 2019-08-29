@@ -105,7 +105,7 @@ controller.middleware.receive.use( function(bot, message,  next){
 controller.middleware.receive.use(dashbot.receive);
 controller.middleware.send.use(dashbot.send);
 
-// controller.middleware.receive.use(dialogflowMiddleware.receive);
+controller.middleware.receive.use(dialogflowMiddleware.receive);
 
 
 

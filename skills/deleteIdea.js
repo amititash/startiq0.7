@@ -43,7 +43,7 @@ module.exports = function(controller) {
             return ;
         }
 
-        if(message.text === "delete idea"){
+        if(message.text === "delete idea" || message.intent === "delete_idea_intent"){
             let ideas = [];
             let attachments = []
             let url = `${process.env.BACKEND_API_URL}/api/v1/kos?emailId=${store.get(message.user)}`;
