@@ -1,7 +1,11 @@
 const logger = require('../utils/logger');
 const axios = require('axios');
+const store = require('../store/store');
 
 module.exports = function(controller){
+
+
+
     controller.middleware.receive.use( async function(bot, message, next){
         //checks the log to see if bot is in some convo
         let logData = [];
@@ -12,7 +16,7 @@ module.exports = function(controller){
                     "meta.convo" : {
                         "$exists" : true
                     },
-                    "meta.userId" : message.user
+                    "meta.userId" : store.get(message.user)
                 },
                 "sort" : "-timestamp"
             });
@@ -59,7 +63,7 @@ module.exports = function(controller){
             message : message.text,
             metadata : {
                 nature : "received_message",
-                userId : message.user
+                userId : store.get(message.user)
             }
         })
         next();
@@ -72,7 +76,7 @@ module.exports = function(controller){
             message : message.text,
             metadata : {
                 nature : "sent_message",
-                userId : message.to
+                userId : store.get(message.to)
             }
         })
 

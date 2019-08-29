@@ -2,7 +2,7 @@ const axios = require('axios');
 const store = require('../store/store');
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
 const elasticSearchService =  require('../utils/elasticsearch');
-
+const logger = require('../utils/logger');
 
 const storeIdea = async (userEmailId, ideaObj) => {
     return new Promise( async(resolve, reject) => {
@@ -18,13 +18,13 @@ const storeIdea = async (userEmailId, ideaObj) => {
             let data = ideaObj;
             console.log("data before saving", data);
             response = await axios.post(url,data);
-            snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
-            imageUrl = snapshotResponse.data.image;
+            // snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
+            // imageUrl = snapshotResponse.data.image;
             let mailData = {
                 to : [userEmailId],
                 from : "engineering@startiq.org",
                 subject : "Test",
-                body : `Here is the link to the report : ${imageUrl}`
+                body : `Here is the link to the report : ${"imageUrl"}`
             }
             await axios.post(mailUrl, mailData);
         }
@@ -35,7 +35,7 @@ const storeIdea = async (userEmailId, ideaObj) => {
         
         resolve({
             success : true,
-            imageUrl : imageUrl,
+            // imageUrl : imageUrl,
             koResponse : response.data
         });
     })
@@ -103,6 +103,15 @@ module.exports = function(controller) {
             }
 
             bot.createConversation(message, function(err, convo) {
+
+                logger.log({
+                    level : "info",
+                    message : message.text,
+                    metadata : {
+                        convo : true,
+                        userId : store.get(message.user)
+                    }
+                });
 
                 if(!existingIdeasCount){
                     // if no idea present, create a new idea
@@ -598,7 +607,13 @@ module.exports = function(controller) {
                             console.log("Categories chosen: ", chosenCategories);
                             convo.setVar("user_categories", chosenCategories.join('\n'))
 
-
+                            logger.log({
+                                level : "info",
+                                message : JSON.stringify(chosenCategories,null,2),
+                                metadata : {
+                                    userId : store.get(message.user)
+                                }
+                            });
                             convo.transitionTo("choose_similar_companies_thread","Cool. Let's do some analysis.");
 
                             convo.next();
@@ -641,6 +656,14 @@ module.exports = function(controller) {
                     catch(e) {
                         console.log("Error in elasticsearch", e)
                     }
+
+                    logger.log({
+                        level : "info",
+                        message : JSON.stringify(similarCompaniesAttachment.attachments,null,2),
+                        metadata : {
+                            userId : store.get(message.user)
+                        }
+                    });
 
                     if(!similarCompanies.length){
                         similarCompaniesString = "No similar companies found."
@@ -1027,7 +1050,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Got it! You are selling your {{{vars.startup_type}}} to a {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millenial, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
+                    text : "Got it! You are selling your {{{vars.startup_type}}} to a {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millennial, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
                 },
                 [
                     {
@@ -1050,57 +1073,7 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread")
 
 
-                convo.addMessage({
-                    text : "OK. Let me ask you a few questions about your strategy."
-                },"chosen_top_competitor_thread")
-
-                convo.addQuestion({
-                    attachments:[
-                        {
-                            title: 'Which one of these best describes how you plan to position your startup in the market?',
-                            callback_id: 'startup_position_in_market',
-                            attachment_type: 'default',
-                            actions: [
-                                {
-                                    "name":"yes",
-                                    "text": "Offer a product that...",
-                                    "value": "offer a product that",
-                                    "type": "button",
-                                },
-                                {
-                                    "name":"no",
-                                    "text": "Offer a lower cost p...",
-                                    "value": "offer a lower cost p",
-                                    "type": "button",
-                                },
-                                {
-                                    "name":"no",
-                                    "text": "Serve an unserved or...",
-                                    "value": "serve an unserved or",
-                                    "type": "button",   
-                                }
-                            ]
-                        }
-                    ]
-                },[
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            convo.setVar("startup_position_in_market", res.text);
-                            ideaObj.startupPositionInMarket = res.text;
-                            convo.next();
-                        }
-                    }  
-                ],
-                {},
-                "chosen_top_competitor_thread");
+                
 
 
                 convo.addQuestion({
@@ -1161,6 +1134,84 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : `Based on these assumptions your total addressable market is {{{vars.total_num_of_users}}} and the maximum revenue is {{{vars.predicted_revenue}}}`
                 },"chosen_top_competitor_thread");
+
+
+
+                convo.addMessage({
+                    text : "OK. Let me ask you a few questions about your strategy."
+                },"chosen_top_competitor_thread")
+
+                convo.addQuestion({
+                    attachments:[
+                        {
+                            title: 'Which one of these best describes how you plan to position your startup in the market?',
+                            callback_id: 'startup_position_in_market',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name":"yes",
+                                    "text": "Differentiation",
+                                    "value": "differentiation",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "Cost leadership",
+                                    "value": "cost leadership",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "Focus",
+                                    "value": "focus",
+                                    "type": "button",   
+                                }
+                            ]
+                        }
+                    ]
+                },[
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            let positionDescription = "";
+                            switch(res.text) {
+                                case "differentiation" : 
+                                    positionDescription = "Your product will be different and more attractive than those of your competitors"
+                                    break;
+                                case "cost leadership" :
+                                    positionDescription = "Reduce your operating costs and charge average prices OR reduce prices to increase market share."
+                                    break;
+                                case "focus" :
+                                    positionDescription = "Provide a specialized product to serve a segment of the market that other competitors ignore."
+                                    break;
+                                default : 
+                                    bot.reply(message, {
+                                        text : "Please use the buttons below for replying to this question"
+                                    })
+                                    convo.repeat();
+                                    return ;
+                            }
+                            convo.setVar("startup_position_in_market", positionDescription);
+                            ideaObj.startupPositionInMarket = res.text;
+                            convo.next();
+                        }
+                    }  
+                ],
+                {},
+                "chosen_top_competitor_thread");
+
+                convo.addMessage({
+                    text : "{{{vars.startup_position_in_market}}}"
+                },"chosen_top_competitor_thread");
+
+
 
                 convo.addMessage({
                     text : "Now let's think about the cost of running your company."
@@ -1250,20 +1301,20 @@ module.exports = function(controller) {
                     let userEmailId = store.get(message.user);
                     try {
                         let response = await storeIdea(userEmailId, ideaObj);
-                        bot.reply(message, {
-                            attachments : [
-                                {
-                                    "type": "image",
-                                    "title": {
-                                        "type": "plain_text",
-                                        "text": "image1",
-                                        "emoji": true
-                                    },
-                                    "image_url": response.imageUrl,
-                                    "alt_text": "image1"
-                                }
-                            ]  
-                        })
+                        // bot.reply(message, {
+                        //     attachments : [
+                        //         {
+                        //             "type": "image",
+                        //             "title": {
+                        //                 "type": "plain_text",
+                        //                 "text": "image1",
+                        //                 "emoji": true
+                        //             },
+                        //             "image_url": response.imageUrl,
+                        //             "alt_text": "image1"
+                        //         }
+                        //     ]  
+                        // })
                         convo.setVar("startup_skills", response.koResponse.startupSkills.join(','))
                         convo.setVar("fundability", Math.round((response.koResponse.fundability*100).toFixed(0)))
                         convo.setVar("freshness" , response.koResponse.freshness_criteria);
@@ -1420,6 +1471,21 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
                 },"early_exit_thread");
+
+
+
+
+
+                convo.on('end', function(convo){
+                    logger.log({
+                        level : "info",
+                        message : message.text,
+                        metadata : {
+                            convo : false,
+                            userId : store.get(message.user)
+                        }
+                    });
+                })
 
                 convo.activate();
 

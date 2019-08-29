@@ -39,7 +39,7 @@ module.exports = function(controller) {
                         message : message.text,
                         metadata : {
                             convo : true,
-                            userId : message.user
+                            userId : store.get(message.user)
                         }
                     });
                     
@@ -177,7 +177,7 @@ module.exports = function(controller) {
                             message : message.text,
                             metadata : {
                                 convo : false,
-                                userId : message.user
+                                userId : store.get(message.user)
                             }
                         });
                     })

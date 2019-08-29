@@ -48,8 +48,8 @@ module.exports = function(controller) {
                     try {
                         let response = await axios.post(url,data);
                         analysis_result = response.data;
-                        let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${analysis_result._id}`);
-                        imageUrl = snapshotResponse.data.image;
+                        // let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${analysis_result._id}`);
+                        // imageUrl = snapshotResponse.data.image;
                     }   
                     catch(e) {
                         console.log(e.message);
@@ -105,8 +105,8 @@ module.exports = function(controller) {
                     convo.setVar("idea_categories_1", ideaCategories1String);
                     convo.setVar("idea_categories_2", ideaCategories2String);
                     convo.setVar("idea_categories_3", ideaCategories3String);
-                    convo.setVar("image_url", imageUrl);
-                    console.log("image url", imageUrl);
+                    // convo.setVar("image_url", imageUrl);
+                    // console.log("image url", imageUrl);
                     next();
                 })
 
@@ -119,7 +119,6 @@ module.exports = function(controller) {
                             
                             "author_link": "https://storage.restpack.io/screenshot/b34240ce7d1b0b8a02a9b717897c178ae9865187af07728a3802e43085f67414.jpg",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                            // "title": `${idea.slice(0,200)}`,
                 
                             "text": `${idea}`,
                             "fields": [
@@ -149,11 +148,10 @@ module.exports = function(controller) {
                                     "short": false
                                 }
                             ],
-                            "image_url": "{{{vars.image_url}}}",
-                            "thumb_url": "{{{vars.image_url}}}",
+                            // "image_url": "{{{vars.image_url}}}",
+                            // "thumb_url": "{{{vars.image_url}}}",
                             "footer": "StartIQ API",
                             "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
-                            // "ts": 123456789
                         }
                     ]
                 },"results_thread")
