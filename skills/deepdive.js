@@ -1358,11 +1358,11 @@ module.exports = function(controller) {
                             "title": "{{{vars.idea_description}}}",
                             "title_link": "https://api.slack.com/",
                             "fields": [
-                                 {
-                                    "title": "Problem Solved",
-                                    "value": "{{{vars.problem_solved}}}",
-                                    "short": false
-                                },
+                                //  {
+                                //     "title": "Problem Solved",
+                                //     "value": "{{{vars.problem_solved}}}",
+                                //     "short": false
+                                // },
                                 {
                                     "title": "Freshness",
                                     "value": "{{{vars.freshness}}}",

@@ -1,6 +1,7 @@
 const store = require('../store/store');
 const axios = require('axios');
 const userProfile = require('../utils/userProfile');
+const logger = require('../utils/logger');
 
 module.exports = function(controller) {
     controller.on('message,direct_message,custom_help_event,custom_greet_event', async function(bot, message){

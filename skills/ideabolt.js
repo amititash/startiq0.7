@@ -1,5 +1,6 @@
 const store = require('../store/store');
 const axios = require('axios');
+const logger = require('../utils/logger');
 
 module.exports = function(controller) {
 
