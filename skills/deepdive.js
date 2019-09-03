@@ -643,6 +643,11 @@ module.exports = function(controller) {
                             similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
                             let companyDescription = element._source.description;
                             companyDescription = companyDescription.slice(0,200);
+                            if(companyDescription.slice(-1) !== " "){
+                                let lastWhitespaceIndex = companyDescription.lastIndexOf(' ');
+                                companyDescription = companyDescription.slice(0, lastWhitespaceIndex);
+                            }
+                            companyDescription += "...";
                             companyDescription = companyDescription.toLowerCase();
                             companyDescription = companyDescription.charAt(0).toUpperCase() + companyDescription.slice(1);
                             similarCompaniesAttachment.attachments.push({
