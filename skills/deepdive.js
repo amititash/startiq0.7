@@ -81,6 +81,7 @@ module.exports = function(controller) {
             });
             let existingIdeasCount = 0;
             let ideas = [];
+            let elasticSearchChosenCompaniesCount = 0;
             let ideaCategoriesMap = {};
             let similarCompaniesMap = {};
             let ideaObj = {};
@@ -716,6 +717,7 @@ module.exports = function(controller) {
                             chosenNumbers.forEach( number => {
                                 if(similarCompaniesMap[`${number}`]) {
                                     chosenCompanies.push(similarCompaniesMap[`${number}`]);
+                                    elasticSearchChosenCompaniesCount++;
                                 }
                             })
                             convo.next();
@@ -828,7 +830,14 @@ module.exports = function(controller) {
                         chosenCompaniesMap[`${index+1}`] = company;
                         chosenCompaniesString += `${index+1}. ${company}\n`
                     })
-                    convo.setVar("finally_chosen_competitors", chosenCompaniesString);
+                    if(chosenCompanies.length <= 1 ){
+                        convo.setVar("top_competitor", chosenCompanies[0])
+                        ideaObj.top_competitor = chosenCompaniesMap[0];
+                        convo.gotoThread("chosen_top_competitor_thread");
+                    }
+                    else {
+                        convo.setVar("finally_chosen_competitors", chosenCompaniesString);
+                    }
                     next();
                 })
 
@@ -839,6 +848,8 @@ module.exports = function(controller) {
                 convo.addMessage({
                     text : "{{{vars.finally_chosen_competitors}}}"
                 },"choose_top_competitor_thread")
+
+
 
                 convo.addQuestion({
                     text : "Ok. Which one of these is your top competitor?"
@@ -855,6 +866,11 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             if(chosenCompaniesMap[`${res.text}`]){
+                                if( Number(res.text) > elasticSearchChosenCompaniesCount ){
+                                    //chosen company is from es results. so no need to ask description
+                                    convo.gotoThread("ask_top_competitor_description_thread");
+                                    return ;
+                                }
                                 console.log("Top competitor : ", chosenCompaniesMap[`${res.text}`]);
                                 convo.setVar("top_competitor", chosenCompaniesMap[`${res.text}`])
                                 ideaObj.top_competitor = chosenCompaniesMap[`${res.text}`];
@@ -872,6 +888,11 @@ module.exports = function(controller) {
                 "choose_top_competitor_thread");
 
 
+                // convo.beforeThread("ask_top_competitor_description_thread", function(convo, next){
+                    
+                //     next(); 
+                // })
+ 
                 convo.addQuestion({
                     text : "What does {{{vars.top_competitor}}} do? For instance Uber's description on crunchbase is 'Uber develops, markets, and operates a ride-sharing mobile application that allows consumers to submit a trip request.' Provide something similar for {{{vars.top_competitor}}}."
                 },
@@ -893,12 +914,13 @@ module.exports = function(controller) {
                                 convo.repeat();
                             }
                             ideaObj.topCompetitorUserDescription = res.text;
+                            convo.gotoThread("chosen_top_competitor_thread");
                             convo.next();
                         }
                     }   
                 ],
                 {},
-                "chosen_top_competitor_thread");
+                "ask_top_competitor_description_thread")
 
 
                 convo.addMessage({
