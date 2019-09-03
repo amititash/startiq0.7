@@ -72,6 +72,13 @@ module.exports = function(controller) {
 
 
         if(message.text === "deepdive" || message.intent === "deepdive_intent" ) {
+            logger.log({
+                level : "info",
+                message : "[deepdive_intent] triggerred successfully",
+                metadata : {
+                    userId : store.get(message.user)
+                }
+            });
             let existingIdeasCount = 0;
             let ideas = [];
             let ideaCategoriesMap = {};
@@ -1480,7 +1487,7 @@ module.exports = function(controller) {
                         default: true,
                         callback: function(reply, convo) {
                             convo.repeat();
-                            next();
+                            convo.next();
                         }
                     }
                 ],
