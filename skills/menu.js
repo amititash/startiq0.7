@@ -21,7 +21,7 @@ module.exports = function(controller) {
                 });
                 
                 convo.say({
-                    text : "You can add additional ideas by typing 'ideastorm' or develop one of your ideas further by typing 'deepdive'."
+                    text : "You can add additional ideas by typing `ideastorm` or develop one of your ideas further by typing `deepdive`."
                 })
 
 

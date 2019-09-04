@@ -873,6 +873,9 @@ module.exports = function(controller) {
                             if(chosenCompaniesMap[`${res.text}`]){
                                 if( Number(res.text) > elasticSearchChosenCompaniesCount ){
                                     //chosen company is from es results. so no need to ask description
+                                    console.log("Top competitor : ", chosenCompaniesMap[`${res.text}`]);
+                                    convo.setVar("top_competitor", chosenCompaniesMap[`${res.text}`])
+                                    ideaObj.top_competitor = chosenCompaniesMap[`${res.text}`];
                                     convo.gotoThread("ask_top_competitor_description_thread");
                                     return ;
                                 }
@@ -1195,26 +1198,28 @@ module.exports = function(controller) {
                 },"chosen_top_competitor_thread")
 
                 convo.addQuestion({
+                    text : 'Which one of these best describes how you plan to position your startup in the market?',
                     attachments:[
                         {
-                            title: 'Which one of these best describes how you plan to position your startup in the market?',
+                            title: "Differentiation - Your product will be different and more attractive than those of your competitors\nCost leadership - Reduce your operating costs and charge average prices OR reduce prices to increase market share.\nFocus - Provide a specialized product to serve a segment of the market that other competitors ignore.",
                             callback_id: 'startup_position_in_market',
                             attachment_type: 'default',
                             actions: [
                                 {
-                                    "name":"yes",
+                                    "name":"startup position",
                                     "text": "Differentiation",
                                     "value": "differentiation",
                                     "type": "button",
+                                    "style" : "danger"
                                 },
                                 {
-                                    "name":"no",
+                                    "name":"startup position",
                                     "text": "Cost leadership",
                                     "value": "cost leadership",
                                     "type": "button",
                                 },
                                 {
-                                    "name":"no",
+                                    "name":"startup position",
                                     "text": "Focus",
                                     "value": "focus",
                                     "type": "button",   
@@ -1463,7 +1468,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
+                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
                 },"exit_without_idea_thread");
 
 
@@ -1522,7 +1527,7 @@ module.exports = function(controller) {
                 "early_exit_thread")
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
+                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
                 },"early_exit_thread");
 
 

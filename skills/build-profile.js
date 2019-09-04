@@ -406,7 +406,7 @@ module.exports = function(controller) {
     //             },"early_exit_thread");
 
     //             convo.addMessage({
-    //                 text : "That is all for now. I have a good sense of your skills. If you want more tools to help you understand yourself better as a founder, just type 'founder'. Otherwise, you can start developing ideas by typing 'ideastorm' in the prompt."
+    //                 text : "That is all for now. I have a good sense of your skills. If you want more tools to help you understand yourself better as a founder, just type `founder`. Otherwise, you can start developing ideas by typing `ideastorm` in the prompt."
     //             },"user_reg_complete_thread");
 
 

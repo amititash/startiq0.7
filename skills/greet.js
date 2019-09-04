@@ -14,7 +14,7 @@ module.exports = function(controller){
     //                 text : "Hi there!  Welcome to StartiQ. I am a science-backed assistant to help you develop and research your business ideas super fast."
     //             })
     //             convo.say({
-    //                 text : "You can add additional ideas by typing 'ideastorm' or develop one of your ideas further by typing 'deepdive'."
+    //                 text : "You can add additional ideas by typing `ideastorm` or develop one of your ideas further by typing `deepdive`."
     //             })
     //             convo.activate();
     //         })

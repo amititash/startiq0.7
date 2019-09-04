@@ -1,6 +1,7 @@
 const store = require('../store/store');
 const logger = require('../utils/logger');
 const slackProfile = require('../utils/userProfile');
+const axios = require('axios');
 
 module.exports = function(controller){
     controller.on('direct_message,message', async function(bot, message){
@@ -11,6 +12,7 @@ module.exports = function(controller){
 
         if(message.text === "founderquiz" || message.intent === "build_profile_intent") {
             let userName = "";
+            let creativityScores = [];
             try {
                 let slackInfo = await slackProfile.slackUserProfile(message.user);
                 userName = slackInfo.userRealName || slackInfo.userDisplayName;
@@ -148,6 +150,18 @@ module.exports = function(controller){
                                     "type": "button",
                                 },
                                 {
+                                    "name":"3",
+                                    "text": "3",
+                                    "value": "3",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"4",
+                                    "text": "4",
+                                    "value": "4",
+                                    "type": "button",
+                                },
+                                {
                                     "name":"5",
                                     "text": "5 (very true)",
                                     "value": "5",
@@ -168,7 +182,17 @@ module.exports = function(controller){
                     {
                         default : true,
                         callback : function(res, convo){
-                            convo.setVar("first_answer", res.text);
+                            let score = parseInt(res.text);
+                            if(isNaN(score) || score<1 || score > 5){
+                                bot.reply(message, {
+                                    text : "Please use the buttons below for replying to this question"
+                                });
+                                convo.repeat();
+                            }
+                            else {
+                                convo.setVar("first_answer", res.text);
+                                creativityScores.push(score);
+                            }
                             convo.next();
                         }
                     }
@@ -197,6 +221,18 @@ module.exports = function(controller){
                                     "type": "button",
                                 },
                                 {
+                                    "name":"3",
+                                    "text": "3",
+                                    "value": "3",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"4",
+                                    "text": "4",
+                                    "value": "4",
+                                    "type": "button",
+                                },
+                                {
                                     "name":"5",
                                     "text": "5 (very true)",
                                     "value": "5",
@@ -217,7 +253,17 @@ module.exports = function(controller){
                     {
                         default : true,
                         callback : function(res, convo){
-                            convo.setVar("first_answer", res.text);
+                            let score = parseInt(res.text);
+                            if(isNaN(score) || score<1 || score > 5){
+                                bot.reply(message, {
+                                    text : "Please use the buttons below for replying to this question"
+                                });
+                                convo.repeat();
+                            }
+                            else {
+                                convo.setVar("first_answer", res.text);
+                                creativityScores.push(score);
+                            }
                             convo.next();
                         }
                     }
@@ -249,8 +295,20 @@ module.exports = function(controller){
                                 },
                                 {
                                     "name":"3",
-                                    "text": "3 (very true)",
+                                    "text": "3",
                                     "value": "3",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"4",
+                                    "text": "4",
+                                    "value": "4",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"5",
+                                    "text": "5 (very true)",
+                                    "value": "5",
                                     "type": "button",
                                 }
                             ]
@@ -267,8 +325,45 @@ module.exports = function(controller){
                     },
                     {
                         default : true,
-                        callback : function(res, convo){
-                            convo.setVar("first_answer", res.text);
+                        callback : async function(res, convo){
+                            let score = parseInt(res.text);
+                            if(isNaN(score) || score<1 || score > 5){
+                                bot.reply(message, {
+                                    text : "Please use the buttons below for replying to this question"
+                                });
+                                convo.repeat();
+                            }
+                            else {
+                                convo.setVar("first_answer", res.text);
+                                creativityScores.push(score);
+                                let url = `${process.env.BACKEND_API_URL}/api/v1/users/founderquiz/creativityScore`;
+                                console.log(url);
+                                let data = {
+                                    creativityScores,
+                                    emailId : store.get(message.user)
+                                }
+                                try {
+                                    let response = await axios.post(url, data);
+
+                                    console.log(response.data);
+                                    let average = response.data.average;
+                                    convo.setVar("average_creativity_score", average);
+                                    let comment = "You are somewhat below average. The best way to improve your self-efficacy is to practice generating ideas. Do you want to see some creativity tips?";
+                                    if(average < 2.25 ){
+                                        // comment = ""
+                                    }   
+                                    else if(average > 3.5){
+                                        // comment = ""
+                                    }   
+                                    else {
+                                        // comment = ""
+                                    }
+                                    convo.setVar("creativity_comment", comment);
+                                }
+                                catch(e){
+                                    console.log(e);
+                                }
+                            }
                             convo.next();
                         }
                     }
@@ -280,7 +375,7 @@ module.exports = function(controller){
                 convo.addQuestion({
                     attachments:[
                         {
-                            title: "Your creative self-efficacy score is 2.25. The average person has a score of 3.42. You are somewhat below average. The best way to improve your self-efficacy is to practice generating ideas. Do you want to see some creativity tips?",
+                            title: "Your creative self-efficacy score is {{{vars.average_creativity_score}}}. The average person has a score of 3.42. {{{vars.creativity_comment}}}",
                             callback_id: '123',
                             attachment_type: 'default',
                             actions: [
@@ -380,6 +475,7 @@ module.exports = function(controller){
                     {
                         pattern : "yes",
                         callback : function(res, convo) {
+                            creativityScores = [];
                             convo.gotoThread("self_assessment_thread");
                             convo.next();
                         }

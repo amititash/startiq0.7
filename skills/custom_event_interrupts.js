@@ -8,7 +8,7 @@ module.exports = function(controller) {
         }
         bot.createConversation(message, function(err, convo){
             convo.say({
-                text : "You can add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
+                text : "You can add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
             })
             convo.activate();
         })
@@ -26,7 +26,7 @@ module.exports = function(controller) {
                 text : "Hi there! I'm StartIQ. I am here to help you develop your business ideas super fast with a little bit of machine learning. 🤖"
             })
             convo.say({
-                text : "Working with me is easy. Just type 'ideastorm' to start brainstorming."
+                text : "Working with me is easy. Just type `ideastorm` to start brainstorming."
             })
             convo.activate();
         })

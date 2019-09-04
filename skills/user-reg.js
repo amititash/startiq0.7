@@ -40,7 +40,7 @@ module.exports = function(controller) {
                 },"default");
 
                 convo.addMessage({
-                    text : "Working with me is easy. Just type 'ideastorm' to start brainstorming.",
+                    text : "Working with me is easy. Just type `ideastorm` to start brainstorming.",
                     action : "signup_thread"
                 },"default");
 
@@ -75,7 +75,6 @@ module.exports = function(controller) {
 
 
                 convo.beforeThread("user_reg_complete_thread", async function(convo, next) {
-                    console.log(userInfo);
                     let url = `${process.env.BACKEND_API_URL}/api/v1/users`;
                     let data = userInfo;
                     try {

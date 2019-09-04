@@ -61,7 +61,7 @@ module.exports = function(controller) {
                     });
 
                     convo.say({
-                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type 'deepdive' and pick one idea to develop further.",
+                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type `deepdive` and pick one idea to develop further.",
                     });
 
                     convo.say({
@@ -167,7 +167,7 @@ module.exports = function(controller) {
 
 
                     convo.addMessage({
-                        text : "If you want to do a deep dive on one of your ideas type 'deepdive' 💦."
+                        text : "If you want to do a deep dive on one of your ideas type `deepdive` 💦."
                     },"exit_thread");
 
 

@@ -90,7 +90,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing 'ideabolt' (one idea) or 'ideastorm' (many ideas) or develop one of your ideas further by typing 'deepdive'."
+                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
                 },"early_exit_thread");
 
 
