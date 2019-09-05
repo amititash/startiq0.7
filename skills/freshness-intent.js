@@ -24,7 +24,7 @@ module.exports = function(controller) {
                 });
 
                 convo.addQuestion({
-                    text : "Please enter the idea and I will find out the freshness score."
+                    text : "Please enter a description of your idea and I will find out the freshness score."
                 },
                 [
                     {

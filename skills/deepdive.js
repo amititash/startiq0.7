@@ -3,6 +3,7 @@ const store = require('../store/store');
 const deepdive_replies = require(`../assets/deepdive/deepdive_replies${ Math.floor(Math.random()*2) + 1 }`);
 const elasticSearchService =  require('../utils/elasticsearch');
 const logger = require('../utils/logger');
+const numeral = require('numeral');
 
 const storeIdea = async (userEmailId, ideaObj) => {
     return new Promise( async(resolve, reject) => {
@@ -501,7 +502,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text: `${deepdive_replies["what_is_the_idea"]["question"]}`
+                    text: `Looks like you don’t have any ideas in your binder yet. Let’s start by entering a new idea. What are you trying to build and for whom?`
                 },
                 [
                     {
@@ -801,7 +802,7 @@ module.exports = function(controller) {
                 "add_missed_similar_companies_thread");
 
                 convo.addQuestion({
-                    text : "Tell me who they are and I'll keep track of them. If have multiple additional competitors, separate their names with commas."
+                    text : "Tell me who they are and I'll keep track of them. If you have multiple additional competitors, separate their names with commas."
                 },
                 [
                     {
@@ -837,6 +838,7 @@ module.exports = function(controller) {
                     })
                     if(chosenCompanies.length <= 1 ){
                         convo.setVar("top_competitor", chosenCompanies[0])
+                        convo.setVar("finally_chosen_competitors", chosenCompanies[0]);
                         ideaObj.top_competitor = chosenCompaniesMap[0];
                         convo.gotoThread("chosen_top_competitor_thread");
                     }
@@ -932,7 +934,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Great, I'll keep track of all your competitors and send you updates about them."
+                    text : "Great, got it! I'll keep track of all your competitors and send you updates about them."
                 },"chosen_top_competitor_thread")
 
                 convo.addMessage({
@@ -948,19 +950,19 @@ module.exports = function(controller) {
                             attachment_type: 'default',
                             actions: [
                                 {
-                                    "name":"business",
+                                    "name":"type_of_customer",
                                     "text": "Business",
                                     "value": "business",
                                     "type": "button",
                                 },
                                 {
-                                    "name" : "individual customer",
-                                    "text": "Individual Customer",
-                                    "value": "individual customer",
+                                    "name" : "type_of_customer",
+                                    "text": "Individual Consumer",
+                                    "value": "individual consumer",
                                     "type": "button",
                                 },
                                 {
-                                    "name" : "government",
+                                    "name" : "type_of_customer",
                                     "text": "Government",
                                     "value": "government",
                                     "type": "button",
@@ -987,10 +989,10 @@ module.exports = function(controller) {
                         }
                     },
                     {
-                        pattern : "individual customer",
+                        pattern : "individual consumer",
                         callback : function(res, convo) {
                             console.log("Chosen customer segment: ",res.text);
-                            convo.setVar("chosen_customer_segment", "individual customer");
+                            convo.setVar("chosen_customer_segment", "individual consumer");
                             ideaObj.chosenCustomerSegment = res.text;
                             convo.next();
                         }
@@ -1029,15 +1031,21 @@ module.exports = function(controller) {
                             attachment_type: 'default',
                             actions: [
                                 {
-                                    "name":"product",
+                                    "name":"type of company",
                                     "text": "Product",
                                     "value": "product",
                                     "type": "button",
                                 },
                                 {
-                                    "name" : "service",
+                                    "name" : "type of company",
                                     "text": "Service",
                                     "value": "service",
+                                    "type": "button",
+                                },
+                                {
+                                    "name" : "type of company",
+                                    "text": "Software as a service",
+                                    "value": "software as a service",
                                     "type": "button",
                                 }
                             ]
@@ -1071,6 +1079,15 @@ module.exports = function(controller) {
                         }
                     },
                     {
+                        pattern : "software as a service",
+                        callback : function(res, convo) {
+                            console.log("Selling a: ",res.text);
+                            ideaObj.sellingTo = res.text;
+                            convo.setVar("startup_type","software as a service" )
+                            convo.next();
+                        }
+                    },
+                    {
                         default : true,
                         callback : function(res, convo) {
                             bot.reply(message, {
@@ -1087,7 +1104,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Got it! You are selling your {{{vars.startup_type}}} to a {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millennial, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
+                    text : "Got it! You are selling your {{{vars.startup_type}}} to a(n) {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millennial, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
                 },
                 [
                     {
@@ -1114,7 +1131,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Now let's turn to market size. How many {{{vars.primary_customer}}} do you think there are?"
+                    text : "Now let's turn to market size. How many {{{vars.primary_customer}}} do you think there are that could potentially buy your product?"
                 },
                 [
                     {
@@ -1138,7 +1155,7 @@ module.exports = function(controller) {
                                 return ;
                             }
                             ideaObj.totalNumberOfUsers = number;
-                            convo.setVar("total_num_of_users", number)
+                            convo.setVar("total_num_of_users", numeral(number).format('0,0'));
                             convo.next();
                         }
                     }
@@ -1147,7 +1164,7 @@ module.exports = function(controller) {
                 "chosen_top_competitor_thread");
 
                 convo.addQuestion({
-                    text : "Wow! How much do you think {{{vars.primary_customer}}} are willing to pay per year in USD for your product?"
+                    text : "How much do you think {{{vars.primary_customer}}} are willing to pay per year in USD for your product?"
                 },
                 [
                     {
@@ -1178,7 +1195,7 @@ module.exports = function(controller) {
                             catch(e){
                                 console.log("enter a numeric value for the number of users and price per user");
                             }
-                            convo.setVar("predicted_revenue", predictedRevenue)
+                            convo.setVar("predicted_revenue", numeral(predictedRevenue).format('0,0'));
                             convo.next();
                         }
                     }
@@ -1188,7 +1205,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : `Based on these assumptions your total addressable market is {{{vars.total_num_of_users}}} and the maximum revenue is {{{vars.predicted_revenue}}}`
+                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.primary_customer}}}. If your estimates are correct, the maximum revenue a startup that captures the entire market can generate is ${{{vars.predicted_revenue}}} per year."
                 },"chosen_top_competitor_thread");
 
 
@@ -1210,7 +1227,6 @@ module.exports = function(controller) {
                                     "text": "Differentiation",
                                     "value": "differentiation",
                                     "type": "button",
-                                    "style" : "danger"
                                 },
                                 {
                                     "name":"startup position",
@@ -1265,14 +1281,14 @@ module.exports = function(controller) {
                 {},
                 "chosen_top_competitor_thread");
 
-                convo.addMessage({
-                    text : "{{{vars.startup_position_in_market}}}"
-                },"chosen_top_competitor_thread");
+                // convo.addMessage({
+                //     text : "{{{vars.startup_position_in_market}}}"
+                // },"chosen_top_competitor_thread");
 
 
 
                 convo.addMessage({
-                    text : "Now let's think about the cost of running your company."
+                    text : "All startups have costs. Let's see if we can get a workable estimate for the cost of running your company."
                 },"chosen_top_competitor_thread");
 
                 convo.addMessage({
@@ -1281,7 +1297,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "If you hire these two people your likely costs are going to be $250000 including health benefits."
+                    text : "If you hire these two people your likely costs are going to be $250,000 , excluding health and fringe benefits."
                 },"chosen_top_competitor_thread")
 
                 convo.addMessage({
@@ -1312,7 +1328,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Based on our calculations, you should expect your annual costs to be approximately $1,000,000. Obviously, the costs can be higher or lower depending on location or other factors. But this is a good place to start."
+                    text : "Based on our calculations, you should expect your annual costs to be approximately $1,000,000. Obviously, the costs can be higher or lower depending on location or other factors. But this estimate is a good place to start."
                 },"chosen_top_competitor_thread");
 
 
@@ -1348,7 +1364,6 @@ module.exports = function(controller) {
                 // convo.addMessage({
                 //     text : "Your potential annual revenue is ${{{vars.predicted_revenue}}}"
                 // },"chosen_top_competitor_thread");
-
                 convo.addMessage({
                     text : "We have done quite a bit of analysis. Hang on a sec, while I analyze your responses using my AI powers and create an idea report for you...",
                     action : "deepdive_completed_thread"
@@ -1373,9 +1388,23 @@ module.exports = function(controller) {
                         //         }
                         //     ]  
                         // })
-                        convo.setVar("startup_skills", response.koResponse.startupSkills.join(','))
-                        convo.setVar("fundability", Math.round((response.koResponse.fundability*100).toFixed(0)))
-                        convo.setVar("freshness" , response.koResponse.freshness_criteria);
+                        let ideaFreshness = "";
+                        switch(response.koResponse.freshness_criteria){
+                            case "very_new_idea" : 
+                                ideaFreshness = "Very new idea, Are you sure you are not entering too early into the market?"
+                                break;
+                            case "moderately_new_idea" : 
+                                ideaFreshness = "This is fairly new, but probably not much competition yet. So perhaps a good time."
+                                break;
+                            case "old_idea" : 
+                                ideaFreshness = "Looks like an old idea. This has been done before. Please check the competitive landscape and be very sure of your moat."
+                                break;
+                        }
+                        let scaledFundability = (((Math.round(response.koResponse.fundability) - 0.33 )/0.33)*100).toFixed(0);
+                        // let scaledFundability = Math.round((response.koResponse.fundability-0.33)/0.33*100).toFixed(0);
+                        convo.setVar("startup_skills", response.koResponse.startupSkills.join(','));
+                        convo.setVar("fundability", scaledFundability);
+                        convo.setVar("freshness" , ideaFreshness);
                         convo.setVar("idea_name", response.koResponse.ideaName);
                         convo.setVar("idea_description", response.koResponse.ideaDescription);
                     }
@@ -1413,7 +1442,7 @@ module.exports = function(controller) {
                                     "short": false
                                 },
                                 {
-                                    "title": "Competition",
+                                    "title": "Likelihood of big competitor",
                                     "value": "Small",
                                     "short": false
                                 },
@@ -1437,12 +1466,12 @@ module.exports = function(controller) {
                                 ,
                                 {
                                     "title": "Predicted Revenue",
-                                    "value": "{{{vars.predicted_revenue}}}",
+                                    "value": "${{{vars.predicted_revenue}}}",
                                     "short": false
                                 }
                                 ,
                                 {
-                                    "title": "Top Competitors",
+                                    "title": "Most similar companies",
                                     "value": "{{{vars.finally_chosen_competitors}}}",
                                     "short": false
                                 }

@@ -16,13 +16,14 @@ module.exports = function(controller){
             try {
                 let slackInfo = await slackProfile.slackUserProfile(message.user);
                 userName = slackInfo.userRealName || slackInfo.userDisplayName;
+                userName = userName.slice(0,userName.indexOf(' '));
             }
             catch(e){
                 console.log("error in slack user profile api", e);
             }
             bot.createConversation(message, function(err, convo){
                 convo.addMessage({
-                    text : `Hey ${userName}! Research shows that the best leaders show their strengths and weaknesses quite well.💪` 
+                    text : `Hey ${userName}! Research shows that the best leaders know their strengths and weaknesses.💪` 
                 },"default");
 
                 convo.addQuestion({
@@ -127,7 +128,7 @@ module.exports = function(controller){
 
 
                 convo.addMessage({
-                    text : "Awesome. I'm going to ask you about three statements, just tell me how true they are on a scale of 1 to 5.🔍"
+                    text : "Awesome. I'm going to ask you about three statements, just tell me how true they are about you on a scale of 1 to 5.🔍"
                 },"creative_self_efficacy_thread");
 
                 convo.addQuestion({

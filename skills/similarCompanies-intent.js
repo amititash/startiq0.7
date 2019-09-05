@@ -25,7 +25,7 @@ module.exports = function(controller) {
                 });
 
                 convo.addQuestion({
-                    text : "Please enter the idea and I will find out companies working on similar idea."
+                    text : "Please enter a description of your idea and I will find out companies working on similar ideas."
                 },
                 [
                     {
@@ -60,6 +60,11 @@ module.exports = function(controller) {
                                     similarCompaniesString += `${index+1}. ${element._source.company_name}\n${element._source.domain}\n${element._source.description}\n`;
                                     let companyDescription = element._source.description;
                                     companyDescription = companyDescription.slice(0,200);
+                                    if(companyDescription.slice(-1) !== " "){
+                                        let lastWhitespaceIndex = companyDescription.lastIndexOf(' ');
+                                        companyDescription = companyDescription.slice(0, lastWhitespaceIndex);
+                                    }
+                                    companyDescription += "...";
                                     companyDescription = companyDescription.toLowerCase();
                                     companyDescription = companyDescription.charAt(0).toUpperCase() + companyDescription.slice(1);
                                     attachment.push({
@@ -99,7 +104,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "I found following companies working on similar idea.",
+                    text : "I found the following companies working on similar ideas.",
                     attachments : attachment
                 },"results_thread");
 
