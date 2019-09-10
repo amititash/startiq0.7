@@ -17,7 +17,7 @@ const storeKo = (url, data) => {
             console.log(e);
             reject(e);
         }
-        resolve(savedKo);        
+        resolve(savedKo);
     })
 }
 
@@ -31,7 +31,7 @@ module.exports = function(controller) {
         if(message.text === "ideastorm" || message.intent === "ideastorm_intent"){
             let ideaCount = 0;
             if(ideastorm_replies.flag === "one_by_one") {
-                
+
                 bot.createConversation(message, function(err, convo) {
 
                     logger.log({
@@ -42,8 +42,8 @@ module.exports = function(controller) {
                             userId : store.get(message.user)
                         }
                     });
-                    
-                   
+
+
 
                     convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                     convo.setVar("idea_count", 0);
@@ -105,7 +105,7 @@ module.exports = function(controller) {
                                 convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
                                 convo.gotoThread("idea_input_thread");
                                 convo.next();
-                            }   
+                            }
                         }
                     ]);
 
@@ -113,6 +113,65 @@ module.exports = function(controller) {
 
                     convo.addQuestion({
                         text : "{{{vars.ideastorm_reply}}}"
+                    },
+                    [
+                        {
+                            pattern : bot.utterances.yes,
+                            callback : function( res, convo) {
+                                convo.gotoThread("enter_idea_thread")
+                                convo.next();
+                            }
+                        },
+                        {
+                            pattern : bot.utterances.no,
+                            callback : function( res, convo) {
+                                convo.gotoThread("exit_thread");
+                                convo.next();
+                            }
+                        },
+                        {
+                            pattern : bot.utterances.quit,
+                            callback : function(res, convo) {
+                                convo.gotoThread("exit_thread");
+                                convo.next();
+                            }
+                        },
+                        {
+                            default : true,
+                            callback : async function(res, convo) {
+                                if(res.text.length < 75){
+                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    convo.repeat();
+                                    return ;
+                                }
+                                let url = `${process.env.BACKEND_API_URL}/api/v1/kos`;
+                                let data = {
+                                    ideaOwner : store.get(message.user),
+                                    ideaDescription : res.text,
+                                    ideaName : res.text.slice(0,200)
+                                }
+                                console.log(url);
+                                try {
+                                    let savedKo = await storeKo(url, data);
+                                    console.log("data was saved successfully");
+                                }
+                                catch(e){
+                                    console.log(e);
+                                    convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
+                                }
+                                ideaCount++;
+                                convo.setVar("ideastorm_reply", ideastorm_replies["bot_replies"][Math.floor(Math.random()*4)]["statement"])
+                                convo.gotoThread("idea_input_thread");
+                                convo.next();
+                            }
+                        }
+                    ],
+                    {},
+                    "idea_input_thread");
+
+
+                    convo.addQuestion({
+                        text : "Great, please specify your idea."
                     },
                     [
                         {
@@ -153,7 +212,7 @@ module.exports = function(controller) {
                         }
                     ],
                     {},
-                    "idea_input_thread");
+                    "enter_idea_thread");
 
                     convo.beforeThread("exit_thread", function(convo, next){
                         convo.setVar("idea_count", ideaCount);

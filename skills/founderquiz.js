@@ -23,7 +23,7 @@ module.exports = function(controller){
             }
             bot.createConversation(message, function(err, convo){
                 convo.addMessage({
-                    text : `Hey ${userName}! Research shows that the best leaders know their strengths and weaknesses.💪` 
+                    text : `Hey ${userName}! Research shows that the best leaders know their strengths and weaknesses.💪`
                 },"default");
 
                 convo.addQuestion({
@@ -348,14 +348,15 @@ module.exports = function(controller){
 
                                     console.log(response.data);
                                     let average = response.data.average;
+                                    let popularAverage = 3.42;
                                     convo.setVar("average_creativity_score", average);
-                                    let comment = "You are somewhat below average. The best way to improve your self-efficacy is to practice generating ideas. Do you want to see some creativity tips?";
+                                    let comment = `You are somewhat ${average >= popularAverage ? "above" : "below"} average. The best way to improve your self-efficacy is to practice generating ideas. Do you want to see some creativity tips?`;
                                     if(average < 2.25 ){
                                         // comment = ""
-                                    }   
+                                    }
                                     else if(average > 3.5){
                                         // comment = ""
-                                    }   
+                                    }
                                     else {
                                         // comment = ""
                                     }
@@ -450,7 +451,7 @@ module.exports = function(controller){
                                 },
                                 {
                                     "name":"no",
-                                    "text": "maybe later",
+                                    "text": "Maybe later",
                                     "value": "no",
                                     "type": "button",
                                 }

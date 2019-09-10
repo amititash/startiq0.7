@@ -12,7 +12,7 @@ module.exports = function(controller) {
             })
             convo.activate();
         })
-        
+
     })
 
 
@@ -27,6 +27,9 @@ module.exports = function(controller) {
             })
             convo.say({
                 text : "Working with me is easy. Just type `ideastorm` to start brainstorming."
+            })
+            convo.say({
+                text : "Or type `help` at any time to see more options."
             })
             convo.activate();
         })

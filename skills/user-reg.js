@@ -30,11 +30,11 @@ module.exports = function(controller) {
                     }
                 });
 
-                
+
                 convo.setVar("user_name", userInfo.username);
                 convo.setVar("user_email", userInfo.email);
-                
-                
+
+
                 convo.addMessage({
                     text : "Hi there! I'm StartIQ. I am here to help you develop your business ideas super fast with a little bit of machine learning. 🤖",
                 },"default");
@@ -44,7 +44,7 @@ module.exports = function(controller) {
                     action : "signup_thread"
                 },"default");
 
-                
+
 
 
 
@@ -72,10 +72,10 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Or type 'help' at any time to see more options.✏️",
+                    text : "Or type `help` at any time to see more options.✏️",
                     action : "user_reg_complete_thread"
                 },"signup_thread")
-                
+
 
 
                 convo.beforeThread("user_reg_complete_thread", async function(convo, next) {
@@ -84,13 +84,13 @@ module.exports = function(controller) {
                     try {
                         await axios.post(url, data);
                     }
-                    catch(e) {  
+                    catch(e) {
                         console.log("user not saved" , e.message);
                     }
-                    next(); 
+                    next();
                 })
 
-                
+
 
                 convo.addMessage({
                     text : "No problem, You can complete your registration process later."
@@ -107,8 +107,8 @@ module.exports = function(controller) {
                         }
                     });
                 })
-                
-                
+
+
                 convo.activate();
             })
         }
