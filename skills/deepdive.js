@@ -21,11 +21,13 @@ const storeIdea = async (userEmailId, ideaObj) => {
             response = await axios.post(url,data);
             // snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
             // imageUrl = snapshotResponse.data.image;
+            // for now imageUrl is following
+            imageUrl = `https://startiq.org/ideareport?id=${response.data._id}`
             let mailData = {
                 to : [userEmailId],
                 from : "engineering@startiq.org",
                 subject : "Test",
-                body : `Here is the link to the report : ${"imageUrl"}`
+                body : `Here is the link to the report : ${imageUrl}`
             }
             await axios.post(mailUrl, mailData);
         }
@@ -1348,7 +1350,7 @@ module.exports = function(controller) {
                             catch(e){
                                 console.log("enter a numeric value for the number of users and price per user");
                             }
-                            convo.setVar("predicted_revenue", numeral(predictedRevenue).format('0,0'));
+                            convo.setVar("total_addressable_market", numeral(predictedRevenue).format('0,0'));
                             convo.next();
                         }
                     }
@@ -1358,7 +1360,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.primary_customer}}}. If your estimates are correct, the maximum revenue a startup that captures the entire market can generate is ${{{vars.predicted_revenue}}} per year."
+                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.primary_customer}}}. If your estimates are correct, the maximum revenue a startup that captures the entire market can generate is ${{{vars.total_addressable_market}}} per year."
                 },"chosen_offering_type_thread");
 
 
@@ -1506,7 +1508,7 @@ module.exports = function(controller) {
                 //         callback : function(res, convo){
                 //             ideaObj.userPercentage = res.text;
                 //             let predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser) * Number(ideaObj.userPercentage)/100 ;
-                //             convo.setVar("predicted_revenue", predictedRevenue);
+                //             convo.setVar("total_addressable_market", predictedRevenue);
                 //             convo.next();
                 //         }
                 //     }
@@ -1515,7 +1517,7 @@ module.exports = function(controller) {
                 // "chosen_offering_type_thread");
 
                 // convo.addMessage({
-                //     text : "Your potential annual revenue is ${{{vars.predicted_revenue}}}"
+                //     text : "Your potential annual revenue is ${{{vars.total_addressable_market}}}"
                 // },"chosen_offering_type_thread");
                 convo.addMessage({
                     text : "We have done quite a bit of analysis. Hang on a sec, while I analyze your responses using my AI powers and create an idea report for you...",
@@ -1643,8 +1645,8 @@ module.exports = function(controller) {
                                 }
                                 ,
                                 {
-                                    "title": "Predicted Revenue",
-                                    "value": "${{{vars.predicted_revenue}}}",
+                                    "title": "Total Addressable Market",
+                                    "value": "${{{vars.total_addressable_market}}}",
                                     "short": false
                                 }
                                 ,
