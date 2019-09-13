@@ -54,11 +54,11 @@ module.exports = function(controller) {
                         to : [store.get(message.user)],
                         from : "engineering@startiq.org",
                         subject : "StartiQ",
-                        body : `Hi ${userInfo.username}! Welcome to StartiQ. We are happy to have you on our platform`,
-                        // templateId : "d-3f394acc5fa64c64bc11f11cc9213427",
-                        // dynamic_template_data : {
-                        //     name : userInfo.username
-                        // }
+                        // body : `Hi ${userInfo.username}! Welcome to StartiQ. We are happy to have you on our platform`,
+                        templateId : "d-3f394acc5fa64c64bc11f11cc9213427",
+                        dynamic_template_data : {
+                            name : userInfo.username
+                        }
                     }
                     try {
                         await axios.post(mailUrl, mailData);
