@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 
 const deleteIdea = (id) => {
     return new Promise( async(resolve, reject) => {
-        let url = `${process.env.BACKEND_API_URL}/api/v1/kos?id=${id}`; 
+        let url = `${process.env.BACKEND_API_URL}/api/v1/kos?id=${id}`;
         let idea = {};
         try{
             let response  = await axios.delete(url);
@@ -201,7 +201,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
+                    text : "Ok, that's fine. You can always add additional ideas by typing `ideastorm` or develop one of your ideas further by typing `deepdive`."
                 },"early_exit_thread");
 
                 convo.addMessage({
@@ -224,6 +224,6 @@ module.exports = function(controller) {
             })
         }
 
-        
+
     })
 }

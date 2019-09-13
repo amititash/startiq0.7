@@ -63,7 +63,7 @@ module.exports = function(controller) {
                         analysis_result = response.data;
                         // let snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${analysis_result._id}`);
                         // imageUrl = snapshotResponse.data.image;
-                    }   
+                    }
                     catch(e) {
                         console.log(e.message);
                         convo.gotoThread("error_thread");
@@ -91,7 +91,7 @@ module.exports = function(controller) {
 
                     let startupSkills = [];
                     let startupSkillsString = "";
-                    startupSkills = analysis_result.startupSkills;
+                    startupSkills = analysis_result.requiredSkills;
                     startupSkills.forEach( (element,index) => {
                         startupSkillsString += `${index+1}. ${element}\n`
                     })
@@ -102,13 +102,13 @@ module.exports = function(controller) {
                     let ideaFreshness = "";
 
                     switch(analysis_result.freshness_criteria){
-                        case "very_new_idea" : 
+                        case "very_new_idea" :
                             ideaFreshness = "Very new idea, Are you sure you are not entering too early into the market?"
                             break;
-                        case "moderately_new_idea" : 
+                        case "moderately_new_idea" :
                             ideaFreshness = "This is fairly new, but probably not much competition yet. So perhaps a good time."
                             break;
-                        case "old_idea" : 
+                        case "old_idea" :
                             ideaFreshness = "Old idea. This has been done before. Please check the competitive landscape and be very sure of your moat."
                             break;
                     }
@@ -129,10 +129,10 @@ module.exports = function(controller) {
                             "fallback": "Required plain-text summary of the attachment.",
                             "color": "#36a64f",
                             "pretext": "StartIQ Analysis of your idea",
-                            
+
                             "author_link": "https://storage.restpack.io/screenshot/b34240ce7d1b0b8a02a9b717897c178ae9865187af07728a3802e43085f67414.jpg",
                             "author_icon": "http://flickr.com/icons/bobby.jpg",
-                
+
                             "text": `${idea}`,
                             "fields": [
                                 {
@@ -168,7 +168,7 @@ module.exports = function(controller) {
                         }
                     ]
                 },"results_thread")
-                
+
 
 
                 convo.addMessage({
@@ -191,6 +191,6 @@ module.exports = function(controller) {
 
             })
         }
-        
+
     })
 }

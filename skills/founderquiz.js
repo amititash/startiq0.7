@@ -432,7 +432,7 @@ module.exports = function(controller){
 
 
                 convo.addMessage({
-                    text : "Here is great link to the American Psychological Association' research-backed tips on boosting creativity: https://www.apa.org/gradpsych/2009/01/creativity",
+                    text : "Here is a great link to the American Psychological Association' research-backed tips on boosting creativity: https://www.apa.org/gradpsych/2009/01/creativity",
                     action : "restart_assessment_thread"
                 },"creativity_tips_thread");
 
@@ -495,7 +495,7 @@ module.exports = function(controller){
 
 
                 convo.addMessage({
-                    text : "Thanks for taking the founderquiz. You can type `founderquiz` to take the quiz again."
+                    text : "Thanks for taking the founderquiz, this is a great first step in learning more about your founder superpowers. You can type `founderquiz` to take more diagnostics quizzes."
                 },"exit_thread");
 
 

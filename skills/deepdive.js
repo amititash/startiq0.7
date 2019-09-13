@@ -15,7 +15,7 @@ const storeIdea = async (userEmailId, ideaObj) => {
         ideaObj.ideaOwner = userEmailId;
 
         try {
-            ideaObj.predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser) ;
+            // ideaObj.totalAddressableMarket = Number(ideaObj.customerSize) * Number(ideaObj.pricePerUser) ;
             let data = ideaObj;
             console.log("data before saving", data);
             response = await axios.post(url,data);
@@ -86,7 +86,9 @@ module.exports = function(controller) {
             let ideas = [];
             let elasticSearchChosenCompaniesCount = 0;
             let ideaCategoriesMap = {};
+            let targetCustomersMap = {};
             let similarCompaniesMap = {};
+            let employeeSalaryMap = {};
             let ideaObj = {};
             let chosenCompanies = [];  // chosen from results of es.
             let chosenCompaniesMap = {};
@@ -536,6 +538,13 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            if(res.text.length< 75){
+                                bot.reply(message, {
+                                    text : "The description should have atleast 75 characters. Please re-enter."
+                                })
+                                convo.repeat();
+                                return ;
+                            }
                             ideaObj.ideaDescription = res.text;
                             ideaObj.ideaName = res.text.slice(0,200);
                             convo.gotoThread("idea_selected_thread");
@@ -599,7 +608,12 @@ module.exports = function(controller) {
                         callback : function(res, convo){
                             ideaObj.ideaName = res.text;
                             convo.setVar("idea_short_name", res.text);
+
                             // convo.gotoThread("deepdive_completed_thread");
+                            // convo.gotoThread("chosen_offering_type_thread");
+                            // convo.gotoThread("determine_startup_costs_thread");
+
+
                             convo.gotoThread("choose_idea_categories_thread");
                             convo.next();
                         }
@@ -977,13 +991,13 @@ module.exports = function(controller) {
                         console.log("errr in idea classifier", e);
                     }
                     let ideaType = (businessProbability > 0.5 ? "business" : "individual consumer");
-                    ideaObj.chosenCustomerSegment = ideaType;
+                    ideaObj.targetSegment = ideaType;
                     convo.setVar("chosen_customer_segment", ideaType )
                     next();
                 })
 
                 convo.addQuestion({
-                    text : "It looks like you are serving a(n) {{{vars.chosen_customer_segment}}}.",
+                    text : "It looks like you are serving a/an {{{vars.chosen_customer_segment}}}.",
                     attachments:[
                         {
                             title: 'Is that correct?',
@@ -1079,7 +1093,7 @@ module.exports = function(controller) {
                         callback : function(res,cov){
                             console.log("Chosen customer segment: ", res.text);
                             convo.setVar("chosen_customer_segment", "business");
-                            ideaObj.chosenCustomerSegment = res.text;
+                            ideaObj.targetSegment = res.text;
                             convo.gotoThread("choose_offering_type_thread");
                             convo.next();
                         }
@@ -1089,7 +1103,7 @@ module.exports = function(controller) {
                         callback : function(res, convo) {
                             console.log("Chosen customer segment: ",res.text);
                             convo.setVar("chosen_customer_segment", "individual consumer");
-                            ideaObj.chosenCustomerSegment = res.text;
+                            ideaObj.targetSegment = res.text;
                             convo.gotoThread("choose_offering_type_thread");
                             convo.next();
                         }
@@ -1256,10 +1270,38 @@ module.exports = function(controller) {
 
 
 
+                convo.beforeThread("chosen_offering_type_thread", async function(convo, next){
+                    let targetCustomers = [];
+                    let ideaDescription = ideaObj.ideaDescription;
+                    let url = `${process.env.CLASSIFIER_API_URL}/targetCustomer?idea=${ideaDescription}`
+                    try {
+                        let response = await axios.get(url);
+                        targetCustomers = response.data["PRED"].slice(0,10);
+                        console.log(targetCustomers)
+                    }
+                    catch(e){
+                        console.log(e);
+                        throw e;
+                    }
+                    let targetCustomersString = "";
+                    targetCustomers.forEach( (element,index) => {
+                        targetCustomersMap[`${index+1}`] = element.topic;
+                        targetCustomersString += `${index+1}. ${element.topic}\n`;
+                    })
+                    convo.setVar("target_customer_string", targetCustomersString);
+                    next();
+                })
 
+                convo.addMessage({
+                    text : "Got it! You are selling your {{{vars.offering_type}}} to a {{{vars.chosen_customer_segment}}}."
+                },"chosen_offering_type_thread")
+
+                convo.addMessage({
+                    text : "It looks like following are your target customers."
+                },"chosen_offering_type_thread")
 
                 convo.addQuestion({
-                    text : "Got it! You are selling your {{{vars.offering_type}}} to a(n) {{{vars.chosen_customer_segment}}}. What type of {{{vars.chosen_customer_segment}}} is your primary customer (e.g., private schools, millennial, department of motor vehicles, etc.)? For now, just pick the most important one.✏️"
+                    text : "{{{vars.target_customer_string}}}\nFor now, just pick the most important one.✏️"
                 },
                 [
                     {
@@ -1272,8 +1314,17 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
-                            convo.setVar("primary_customer", res.text);
-                            ideaObj.primaryCustomer = res.text;
+                            let chosenNumber = res.text;
+                            if(targetCustomersMap[`${res.text}`]){
+                                convo.setVar("target_customer", targetCustomersMap[`${res.text}`]);
+                                ideaObj.targetCustomer = targetCustomersMap[`${res.text}`];
+                            }
+                            else {
+                                bot.reply(message, {
+                                    text : "Please choose a valid option."
+                                })
+                                convo.repeat();
+                            }
                             convo.next();
                         }
                     }
@@ -1285,8 +1336,10 @@ module.exports = function(controller) {
 
 
 
+
+
                 convo.addQuestion({
-                    text : "Now let's turn to market size. How many {{{vars.primary_customer}}} do you think there are that could potentially buy your product?"
+                    text : "Now let's turn to market size. How many {{{vars.target_customer}}} do you think there are that could potentially buy your product?"
                 },
                 [
                     {
@@ -1309,7 +1362,7 @@ module.exports = function(controller) {
                                 console.log(e);
                                 return ;
                             }
-                            ideaObj.totalNumberOfUsers = number;
+                            ideaObj.customerSize = number;
                             convo.setVar("total_num_of_users", numeral(number).format('0,0'));
                             convo.next();
                         }
@@ -1319,7 +1372,7 @@ module.exports = function(controller) {
                 "chosen_offering_type_thread");
 
                 convo.addQuestion({
-                    text : "How much do you think {{{vars.primary_customer}}} are willing to pay per year in USD for your product?"
+                    text : "How much do you think {{{vars.target_customer}}} are willing to pay per year in USD for your product?"
                 },
                 [
                     {
@@ -1343,14 +1396,15 @@ module.exports = function(controller) {
                                 return ;
                             }
                             ideaObj.pricePerUser = number;
-                            let predictedRevenue = 0;
+                            let totalAddressableMarket = 0;
                             try{
-                                predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser);
+                                totalAddressableMarket = Number(ideaObj.customerSize) * Number(ideaObj.pricePerUser);
+                                ideaObj.totalAddressableMarket = Number(ideaObj.customerSize) * Number(ideaObj.pricePerUser) ;
                             }
                             catch(e){
                                 console.log("enter a numeric value for the number of users and price per user");
                             }
-                            convo.setVar("total_addressable_market", numeral(predictedRevenue).format('0,0'));
+                            convo.setVar("total_addressable_market", numeral(totalAddressableMarket).format('0,0'));
                             convo.next();
                         }
                     }
@@ -1360,7 +1414,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.primary_customer}}}. If your estimates are correct, the maximum revenue a startup that captures the entire market can generate is ${{{vars.total_addressable_market}}} per year."
+                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.target_customer}}}. If your estimates are correct, the maximum revenue a startup that captures (e.g., their total addressable market) the entire market can generate is ${{{vars.total_addressable_market}}} per year."
                 },"chosen_offering_type_thread");
 
 
@@ -1429,6 +1483,7 @@ module.exports = function(controller) {
                             }
                             convo.setVar("startup_position_in_market", positionDescription);
                             ideaObj.startupPositionInMarket = res.text;
+                            convo.gotoThread("determine_startup_costs_thread")
                             convo.next();
                         }
                     }
@@ -1440,24 +1495,84 @@ module.exports = function(controller) {
                 //     text : "{{{vars.startup_position_in_market}}}"
                 // },"chosen_offering_type_thread");
 
-
+                convo.beforeThread("determine_startup_costs_thread", function(convo, next){
+                    let employeeSalaryString = "";
+                    let count = 1;
+                    const salaries = require('../assets/salary/salary');
+                    for(let key in salaries) {
+                        console.log("zz", key);
+                        if(salaries.hasOwnProperty(key)){
+                            employeeSalaryMap[count] = salaries[key]["totalCost"];
+                            employeeSalaryString += `${count++}. ${key} : $${numeral(salaries[key]["totalCost"]).format('0,0.00')}\n`
+                        }
+                    }
+                    console.log(employeeSalaryMap,"yy");
+                    convo.setVar("employee_salary_string", employeeSalaryString);
+                    next();
+                })
 
                 convo.addMessage({
                     text : "All startups have costs. Let's see if we can get a workable estimate for the cost of running your company."
-                },"chosen_offering_type_thread");
+                },"determine_startup_costs_thread");
 
                 convo.addMessage({
-                    text : "Let's start with salaries. Based on how you describe your company you might need the following team members. I've included some estimates of their likely salaries too.\n1. Manager : $100,000\n2. Engineer : $80,000"
-                },"chosen_offering_type_thread")
+                    text : "Let's start with salaries. Based on how you describe your company you might need the following team members. I've included some estimates of their likely salaries too."
+                },"determine_startup_costs_thread")
 
+
+                convo.addQuestion({
+                    text : "{{{vars.employee_salary_string}}}\nEnter the numbers corresponding to the team members you wish to have."
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo){
+                            let chosenEmployees = [];
+                            let numString = res.text.replace(/ /g, '');
+                            let chosenNumbers = numString.split(',');
+                            chosenNumbers.forEach( number => {
+                                if(employeeSalaryMap[`${number}`]) {
+                                    chosenEmployees.push(employeeSalaryMap[`${number}`]);
+                                }
+                            })
+                            console.log("Categories chosen: ", chosenEmployees);
+                            if(!chosenEmployees.length){
+                                bot.reply(message, {
+                                    text : "Please choose atleast one team member."
+                                });
+                                convo.repeat();
+                                convo.next();
+                                return ;
+                            }
+                            let overallEmployeesCost = 0;
+                            overallEmployeesCost = chosenEmployees.reduce( (sum , current) => sum + current ,0);
+                            convo.setVar("overall_employees_cost", numeral(overallEmployeesCost.toFixed(2)).format('0,0.00'));
+                            // let totalCost = 0;
+                            // chosenEmployees.forEach( element => {
+                            //     totalCost += element
+                            // })
+                            // convo.setVar("user_categories", chosenCategories.join('\n'))
+                            convo.next();
+                        }
+                    }
+                ],
+                {},
+                "determine_startup_costs_thread")
 
                 convo.addMessage({
-                    text : "If you hire these two people your likely costs are going to be $250,000 , excluding health and fringe benefits."
-                },"chosen_offering_type_thread")
+                    text : "If you hire these people your likely costs are going to be ${{{vars.overall_employees_cost}}} , excluding health and fringe benefits."
+                },"determine_startup_costs_thread")
 
                 convo.addMessage({
                     text : "Great. Here are some other common costs for young businesses.\n1. Rent and utilities\n2. Software\n3. Machinery\n4. Legal fees\n5. Advertising\n6. Interest\n7. Insurance and license"
-                },"chosen_offering_type_thread")
+                },"determine_startup_costs_thread")
 
                 convo.addQuestion({
                     text : "Which of these apply to you?"
@@ -1479,50 +1594,19 @@ module.exports = function(controller) {
                     }
                 ],
                 {},
-                "chosen_offering_type_thread")
+                "determine_startup_costs_thread")
 
 
                 convo.addMessage({
                     text : "Based on our calculations, you should expect your annual costs to be approximately $1,000,000. Obviously, the costs can be higher or lower depending on location or other factors. But this estimate is a good place to start."
-                },"chosen_offering_type_thread");
+                },"determine_startup_costs_thread");
 
 
 
-
-
-
-
-                // convo.addQuestion({
-                //     text : "What is the percentage of users you will address in an year (approx)?"
-                // },
-                // [
-                //     {
-                //         pattern : bot.utterances.quit,
-                //         callback : function(res, convo){
-                //             convo.gotoThread("early_exit_thread");
-                //             convo.next();
-                //         }
-                //     },
-                //     {
-                //         default : true,
-                //         callback : function(res, convo){
-                //             ideaObj.userPercentage = res.text;
-                //             let predictedRevenue = Number(ideaObj.totalNumberOfUsers) * Number(ideaObj.pricePerUser) * Number(ideaObj.userPercentage)/100 ;
-                //             convo.setVar("total_addressable_market", predictedRevenue);
-                //             convo.next();
-                //         }
-                //     }
-                // ],
-                // {},
-                // "chosen_offering_type_thread");
-
-                // convo.addMessage({
-                //     text : "Your potential annual revenue is ${{{vars.total_addressable_market}}}"
-                // },"chosen_offering_type_thread");
                 convo.addMessage({
                     text : "We have done quite a bit of analysis. Hang on a sec, while I analyze your responses using my AI powers and create an idea report for you...",
                     action : "deepdive_completed_thread"
-                },"chosen_offering_type_thread");
+                },"determine_startup_costs_thread");
 
 
                 convo.beforeThread("deepdive_completed_thread", async function(convo, next){
@@ -1581,7 +1665,7 @@ module.exports = function(controller) {
                             convo.setVar("fundability", scaledFundability);
                         }
                         console.log("star rating", fundabilityStars);
-                        convo.setVar("startup_skills", response.koResponse.startupSkills.join(','));
+                        convo.setVar("startup_skills", response.koResponse.requiredSkills.join(','));
                         // convo.setVar("fundability", scaledFundability);
                         convo.setVar("fundability_stars", fundabilityStars);
                         convo.setVar("freshness" , ideaFreshness);
@@ -1677,7 +1761,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
+                    text : "Ok, that's fine. You can always add additional ideas by typing ideastorm` or develop one of your ideas further by typing `deepdive`."
                 },"exit_without_idea_thread");
 
 
@@ -1736,7 +1820,7 @@ module.exports = function(controller) {
                 "early_exit_thread")
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
+                    text : "Ok, that's fine. You can always add additional ideas by typing `ideastorm` or develop one of your ideas further by typing `deepdive`."
                 },"early_exit_thread");
 
 

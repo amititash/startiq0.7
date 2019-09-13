@@ -69,7 +69,7 @@ module.exports = function(controller) {
                     });
 
                     convo.ask({
-                        text: "If you want to stop, please type 'cancel' at any time.",
+                        text: "If you want to stop, please type `cancel` at any time.",
                     },
                     [
                         {
@@ -83,7 +83,7 @@ module.exports = function(controller) {
                             default : true,
                             callback : async function(res, convo) {
                                 if(res.text.length < 75){
-                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type `cancel`.")
                                     convo.repeat();
                                     return ;
                                 }
@@ -140,7 +140,7 @@ module.exports = function(controller) {
                             default : true,
                             callback : async function(res, convo) {
                                 if(res.text.length < 75){
-                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type `cancel`.")
                                     convo.repeat();
                                     return ;
                                 }
@@ -185,7 +185,7 @@ module.exports = function(controller) {
                             default : true,
                             callback : async function(res, convo) {
                                 if(res.text.length < 75){
-                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type 'cancel'.")
+                                    bot.reply(message, "An idea description should contain a minimum of 75 characters. If you want to stop entering ideas, type `cancel`.")
                                     convo.repeat();
                                     return ;
                                 }

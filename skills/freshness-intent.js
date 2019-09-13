@@ -47,7 +47,7 @@ module.exports = function(controller) {
                                 let response = await axios.post(url, koData);
                                 let createdKo = response.data;
                                 attachment.push({
-                                    
+
                                     "fallback": "Required plain-text summary of the attachment.",
                                     "color": "#36a64f",
                                     // "pretext": "Here are the top ideas by fundability. Type the number of the idea you want to develop further.",
@@ -69,7 +69,7 @@ module.exports = function(controller) {
                                     "footer": "StartIQ API",
                                     "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
                                     // "ts": 123456789
-                                    
+
                                 })
                                 convo.setVar("fundability_score", createdKo.fundability);
                             }
@@ -90,7 +90,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Ok, that's fine. You can always add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
+                    text : "Ok, that's fine. You can always add additional ideas by typing `ideastorm` or develop one of your ideas further by typing `deepdive`."
                 },"early_exit_thread");
 
 
@@ -104,7 +104,7 @@ module.exports = function(controller) {
                         }
                     });
                 })
-                
+
                 convo.activate();
             })
         }

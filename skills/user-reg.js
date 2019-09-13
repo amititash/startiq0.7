@@ -55,7 +55,7 @@ module.exports = function(controller) {
                         from : "engineering@startiq.org",
                         subject : "StartiQ",
                         body : `Hi ${userInfo.username}! Welcome to StartiQ. We are happy to have you on our platform`,
-                        // templateId : "d-f8b5a2347aec48bebbb25cb224fd1e1f",
+                        // templateId : "d-3f394acc5fa64c64bc11f11cc9213427",
                         // dynamic_template_data : {
                         //     name : userInfo.username
                         // }

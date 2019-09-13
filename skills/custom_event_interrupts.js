@@ -8,7 +8,8 @@ module.exports = function(controller) {
         }
         bot.createConversation(message, function(err, convo){
             convo.say({
-                text : "You can add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
+                // text : "You can add an additional idea by typing `ideabolt` (one idea) or `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
+                text : "You can add additional ideas by typing `ideastorm` (many ideas) or develop one of your ideas further by typing `deepdive`."
             })
             convo.activate();
         })
