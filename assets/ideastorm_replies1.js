@@ -12,7 +12,7 @@ module.exports = {
             "statement" : "👍 Great! next?"
         },
         {
-            "statement" : "Awesome!😊 Do you have another?"
+            "statement" : "Awesome!😊 Have another idea? Type `cancel` if you are done."
         },
         {
             "statement" : "Great!😃 Keep going :pencil2:"

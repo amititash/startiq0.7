@@ -89,6 +89,8 @@ module.exports = function(controller) {
             let targetCustomersMap = {};
             let similarCompaniesMap = {};
             let employeeSalaryMap = {};
+            let totalEmployeesSalary = 0;
+            let otherCostsMap = {};
             let ideaObj = {};
             let chosenCompanies = [];  // chosen from results of es.
             let chosenCompaniesMap = {};
@@ -140,7 +142,28 @@ module.exports = function(controller) {
 
 
                     convo.addQuestion({
-                        text : `It looks like you have ${existingIdeasCount} ideas in your binder. How would you like me to sort your ideas?\n1. Fundability (our estimate of how fundable the idea is based on the recent deal flow)\n2. Freshness (whether the idea you are describing looks like other 'hot' ideas out there)\n3. By when you entered it\n4. I want to enter a new idea\nChoose one or type 'search' to find an idea using keywords. ✏️`
+                        text : `It looks like you have ${existingIdeasCount} ideas in your binder. `,
+                        attachments:[
+                            {
+                                title : "Do you want to generate a new idea?",
+                                callback_id: '123',
+                                attachment_type: 'default',
+                                actions: [
+                                    {
+                                        "name":"yes",
+                                        "text": "Yes",
+                                        "value": "yes",
+                                        "type": "button",
+                                    },
+                                    {
+                                        "name":"no",
+                                        "text": "No",
+                                        "value": "no",
+                                        "type": "button",
+                                    }
+                                ]
+                            }
+                        ]
                     },
                     [
                         {
@@ -151,21 +174,94 @@ module.exports = function(controller) {
                             }
                         },
                         {
-                            pattern : "1",
+                            pattern : "yes",
+                            callback : function(res, convo) {
+                                convo.gotoThread("new_idea_thread");
+                                convo.next();
+                            }
+                        },
+                        {
+                            pattern : "no",
+                            callback : function(res, convo) {
+                                convo.next();
+                            }
+                        },
+                        {
+                            default : true,
+                            callback : function(res, convo) {
+                                bot.reply(message, {
+                                    text : "Please use the buttons below for replying to this question"
+                                })
+                                convo.repeat();
+                                convo.next();
+                            }
+                        },
+                    ],
+                    {},
+                    "default")
+
+
+
+                    convo.addQuestion({
+                        // text : `\n1. Fundability (our estimate of how fundable the idea is based on the recent deal flow)\n2. Freshness (whether the idea you are describing looks like other 'hot' ideas out there)\n3. By when you entered it\n4. I want to enter a new idea\nChoose one or type 'search' to find an idea using keywords. ✏️`,
+                        attachments:[
+                            {
+                                title: 'How would you like me to sort your ideas?',
+                                callback_id: '123',
+                                attachment_type: 'default',
+                                actions: [
+                                    {
+                                        "name":"sort_criteria",
+                                        "text": "Fundability",
+                                        "value": "fundability",
+                                        "type": "button",
+                                    },
+                                    {
+                                        "name":"sort_criteria",
+                                        "text": "Freshness",
+                                        "value": "freshness",
+                                        "type": "button",
+                                    },
+                                    {
+                                        "name":"sort_criteria",
+                                        "text": "Last one",
+                                        "value": "last one",
+                                        "type": "button",
+                                    },
+                                    {
+                                        "name":"sort_criteria",
+                                        "text": "Search ideas",
+                                        "value": "search ideas",
+                                        "type": "button",
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    [
+                        {
+                            pattern : bot.utterances.quit,
+                            callback : function(res, convo) {
+                                convo.gotoThread("exit_without_idea_thread");
+                                convo.next();
+                            }
+                        },
+                        {
+                            pattern : "fundability",
                             callback : function(res, convo) {
                                 convo.gotoThread("rank_by_fundability_thread");
                                 convo.next();
                             }
                         },
                         {
-                            pattern : "2",
+                            pattern : "freshness",
                             callback : function(res, convo) {
                                 convo.gotoThread("rank_by_freshness_thread");
                                 convo.next();
                             }
                         },
                         {
-                            pattern : "3",
+                            pattern : "last one",
                             callback : function(res, convo) {
                                 convo.gotoThread("rank_by_recent_thread");
                                 convo.next();
@@ -179,7 +275,7 @@ module.exports = function(controller) {
                             }
                         },
                         {
-                            pattern : "search",
+                            pattern : "search ideas",
                             callback : function(res, convo) {
                                 convo.gotoThread("ideas_by_keyword_thread");
                                 convo.next();
@@ -188,6 +284,9 @@ module.exports = function(controller) {
                         {
                             default : true,
                             callback : function(res, convo) {
+                                bot.reply(message, {
+                                    text : "Please use the buttons below for replying to this question"
+                                });
                                 convo.repeat();
                                 convo.next();
                             }
@@ -251,7 +350,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the top ideas by fundability. Type the number of the idea you want to develop further.\n",
+                    text : "Here are your top ideas by fundability. Type the number of the idea you want to develop further.\n",
                     attachments : ideaByFundabilityAttachment.attachments
                 },
                 [
@@ -326,7 +425,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Here are the top ideas by freshness. Type the number of the idea you want to develop further.",
+                    text : "Here are your top ideas by freshness. Type the number of the idea you want to develop further.",
                     attachments : ideaByFreshnessAttachment.attachments
                 },
                 [
@@ -593,7 +692,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Let's begin by giving your product or service a name you can remember?"
+                    text : "What do you want to name your product?\nOne or two words is good."
                 },
                 [
                     {
@@ -623,7 +722,7 @@ module.exports = function(controller) {
                 "idea_selected_thread");
 
                 convo.addMessage({
-                    text : "Ok, great. {{{vars.idea_short_name}}} looks like it belongs to one of the following product categories. If any of these seem right, enter the numbers below and separate each number by a comma (eg. '1,2,4')."
+                    text : "{{{vars.idea_short_name}}} looks like it belongs to one of the following categories. Do any of these seem right? Enter the numbers below and separate each number by a comma (eg. '1,2,4')."
                 },"choose_idea_categories_thread");
 
                 convo.addQuestion({
@@ -731,7 +830,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Have you thought about who your competitors are? Here are a few suggestions of similar companies to get you started."
+                    text : "Have you thought about possible competitors? Here are a few suggestions of similar companies to get you started."
                 },"choose_similar_companies_thread");
 
                 convo.addMessage({
@@ -739,7 +838,7 @@ module.exports = function(controller) {
                 },"choose_similar_companies_thread");
 
                 convo.addQuestion({
-                    text : "What do you think? Remember, a strong competitor may not have the same solution as you but they could be solving the same problem. Enter the numbers, separated by commas, corresponding to any company you see as a competitor."
+                    text : "What do you think? Remember, a strong competitor may not have the same solution as you but they could be solving the same problem. Enter the numbers, separated by commas, corresponding to any similar companies."
                 },
                 [
                     {
@@ -779,7 +878,7 @@ module.exports = function(controller) {
                 convo.addQuestion({
                     attachments:[
                         {
-                            title: 'Are there any other competitors that I missed?',
+                            title: 'Are there any companies I missed?',
                             callback_id: '123',
                             attachment_type: 'default',
                             actions: [
@@ -884,7 +983,7 @@ module.exports = function(controller) {
                 })
 
                 convo.addMessage({
-                    text : "Great. Here are all the competitors we have listed for you."
+                    text : "Great. Here are all the similar companies we have listed for you."
                 },"choose_top_competitor_thread")
 
                 convo.addMessage({
@@ -970,11 +1069,11 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Great, got it! I'll keep track of all your competitors and send you updates about them."
+                    text : "Great, got it! I'll keep track of these and send updates."
                 },"chosen_top_competitor_thread")
 
                 convo.addMessage({
-                    text : "Now let's pivot to your customers.",
+                    text : "Now let's pivot to customers.",
                     action : "choose_customer_segment_thread"
                 },"chosen_top_competitor_thread");
 
@@ -997,7 +1096,7 @@ module.exports = function(controller) {
                 })
 
                 convo.addQuestion({
-                    text : "It looks like you are serving a/an {{{vars.chosen_customer_segment}}}.",
+                    text : "It looks like you are serving a {{{vars.chosen_customer_segment}}}.",
                     attachments:[
                         {
                             title: 'Is that correct?',
@@ -1143,7 +1242,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Looks like this is a(n) {{{vars.offering_type}}}.",
+                    text : "Looks like this is a {{{vars.offering_type}}}.",
                     attachments:[
                         {
                             title: 'Is that correct?',
@@ -1285,8 +1384,10 @@ module.exports = function(controller) {
                     }
                     let targetCustomersString = "";
                     targetCustomers.forEach( (element,index) => {
-                        targetCustomersMap[`${index+1}`] = element.topic;
-                        targetCustomersString += `${index+1}. ${element.topic}\n`;
+                        let targetCustomer = element.topic;
+                        targetCustomer = targetCustomer.charAt(0).toUpperCase() + targetCustomer.slice(1);
+                        targetCustomersMap[`${index+1}`] = targetCustomer;
+                        targetCustomersString += `${index+1}. ${targetCustomer}\n`;
                     })
                     convo.setVar("target_customer_string", targetCustomersString);
                     next();
@@ -1297,11 +1398,15 @@ module.exports = function(controller) {
                 },"chosen_offering_type_thread")
 
                 convo.addMessage({
-                    text : "It looks like following are your target customers."
+                    text : "It looks like the following are possible target customers."
+                },"chosen_offering_type_thread")
+
+                convo.addMessage({
+                    text : "For now, just pick the most important one.✏️"
                 },"chosen_offering_type_thread")
 
                 convo.addQuestion({
-                    text : "{{{vars.target_customer_string}}}\nFor now, just pick the most important one.✏️"
+                    text : "{{{vars.target_customer_string}}}"
                 },
                 [
                     {
@@ -1321,7 +1426,7 @@ module.exports = function(controller) {
                             }
                             else {
                                 bot.reply(message, {
-                                    text : "Please choose a valid option."
+                                    text : "Just choose one of these customer segments, even though there might be more."
                                 })
                                 convo.repeat();
                             }
@@ -1339,7 +1444,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Now let's turn to market size. How many {{{vars.target_customer}}} do you think there are that could potentially buy your product?"
+                    text : "Now let's turn to market size. How many {{{vars.target_customer}}}s do you think there are that could potentially buy your product?"
                 },
                 [
                     {
@@ -1372,7 +1477,7 @@ module.exports = function(controller) {
                 "chosen_offering_type_thread");
 
                 convo.addQuestion({
-                    text : "How much do you think {{{vars.target_customer}}} are willing to pay per year in USD for your product?"
+                    text : "How much do you think {{{vars.target_customer}}}s are willing to pay per year in USD for your product?"
                 },
                 [
                     {
@@ -1414,100 +1519,106 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.target_customer}}}. If your estimates are correct, the maximum revenue a startup that captures (e.g., their total addressable market) the entire market can generate is ${{{vars.total_addressable_market}}} per year."
+                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.target_customer}}}s. If this is right, the maximum revenue entire market can generate is ${{{vars.total_addressable_market}}} per year.",
+                    action : "determine_startup_costs_thread"
                 },"chosen_offering_type_thread");
 
 
-
-                convo.addMessage({
-                    text : "OK. Let me ask you a few questions about your strategy."
-                },"chosen_offering_type_thread")
-
-                convo.addQuestion({
-                    text : 'Which one of these best describes how you plan to position your startup in the market?',
-                    attachments:[
-                        {
-                            title: "Differentiation - Your product will be different and more attractive than those of your competitors\nCost leadership - Reduce your operating costs and charge average prices OR reduce prices to increase market share.\nFocus - Provide a specialized product to serve a segment of the market that other competitors ignore.",
-                            callback_id: 'startup_position_in_market',
-                            attachment_type: 'default',
-                            actions: [
-                                {
-                                    "name":"startup position",
-                                    "text": "Differentiation",
-                                    "value": "differentiation",
-                                    "type": "button",
-                                },
-                                {
-                                    "name":"startup position",
-                                    "text": "Cost leadership",
-                                    "value": "cost leadership",
-                                    "type": "button",
-                                },
-                                {
-                                    "name":"startup position",
-                                    "text": "Focus",
-                                    "value": "focus",
-                                    "type": "button",
-                                }
-                            ]
-                        }
-                    ]
-                },[
-                    {
-                        pattern : bot.utterances.quit,
-                        callback : function(res, convo) {
-                            convo.gotoThread("early_exit_thread");
-                            convo.next();
-                        }
-                    },
-                    {
-                        default : true,
-                        callback : function(res, convo) {
-                            let positionDescription = "";
-                            switch(res.text) {
-                                case "differentiation" :
-                                    positionDescription = "Your product will be different and more attractive than those of your competitors"
-                                    break;
-                                case "cost leadership" :
-                                    positionDescription = "Reduce your operating costs and charge average prices OR reduce prices to increase market share."
-                                    break;
-                                case "focus" :
-                                    positionDescription = "Provide a specialized product to serve a segment of the market that other competitors ignore."
-                                    break;
-                                default :
-                                    bot.reply(message, {
-                                        text : "Please use the buttons below for replying to this question"
-                                    })
-                                    convo.repeat();
-                                    return ;
-                            }
-                            convo.setVar("startup_position_in_market", positionDescription);
-                            ideaObj.startupPositionInMarket = res.text;
-                            convo.gotoThread("determine_startup_costs_thread")
-                            convo.next();
-                        }
-                    }
-                ],
-                {},
-                "chosen_offering_type_thread");
-
+                //
                 // convo.addMessage({
-                //     text : "{{{vars.startup_position_in_market}}}"
-                // },"chosen_offering_type_thread");
+                //     text : "OK. Let me ask you a few questions about your strategy."
+                // },"chosen_offering_type_thread")
+                //
+                // convo.addQuestion({
+                //     text : 'Which one of these best describes how you plan to position your startup in the market?',
+                //     attachments:[
+                //         {
+                //             title: "Differentiation - Your product will be different and more attractive than those of your competitors\nCost leadership - Reduce your operating costs and charge average prices OR reduce prices to increase market share.\nFocus - Provide a specialized product to serve a segment of the market that other competitors ignore.",
+                //             callback_id: 'startup_position_in_market',
+                //             attachment_type: 'default',
+                //             actions: [
+                //                 {
+                //                     "name":"startup position",
+                //                     "text": "Differentiation",
+                //                     "value": "differentiation",
+                //                     "type": "button",
+                //                 },
+                //                 {
+                //                     "name":"startup position",
+                //                     "text": "Cost leadership",
+                //                     "value": "cost leadership",
+                //                     "type": "button",
+                //                 },
+                //                 {
+                //                     "name":"startup position",
+                //                     "text": "Focus",
+                //                     "value": "focus",
+                //                     "type": "button",
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },[
+                //     {
+                //         pattern : bot.utterances.quit,
+                //         callback : function(res, convo) {
+                //             convo.gotoThread("early_exit_thread");
+                //             convo.next();
+                //         }
+                //     },
+                //     {
+                //         default : true,
+                //         callback : function(res, convo) {
+                //             let positionDescription = "";
+                //             switch(res.text) {
+                //                 case "differentiation" :
+                //                     positionDescription = "Your product will be different and more attractive than those of your competitors"
+                //                     break;
+                //                 case "cost leadership" :
+                //                     positionDescription = "Reduce your operating costs and charge average prices OR reduce prices to increase market share."
+                //                     break;
+                //                 case "focus" :
+                //                     positionDescription = "Provide a specialized product to serve a segment of the market that other competitors ignore."
+                //                     break;
+                //                 default :
+                //                     bot.reply(message, {
+                //                         text : "Please use the buttons below for replying to this question"
+                //                     })
+                //                     convo.repeat();
+                //                     return ;
+                //             }
+                //             convo.setVar("startup_position_in_market", positionDescription);
+                //             ideaObj.startupPositionInMarket = res.text;
+                //             convo.gotoThread("determine_startup_costs_thread")
+                //             convo.next();
+                //         }
+                //     }
+                // ],
+                // {},
+                // "chosen_offering_type_thread");
 
                 convo.beforeThread("determine_startup_costs_thread", function(convo, next){
                     let employeeSalaryString = "";
                     let count = 1;
                     const salaries = require('../assets/salary/salary');
                     for(let key in salaries) {
-                        console.log("zz", key);
                         if(salaries.hasOwnProperty(key)){
                             employeeSalaryMap[count] = salaries[key]["totalCost"];
                             employeeSalaryString += `${count++}. ${key} : $${numeral(salaries[key]["totalCost"]).format('0,0.00')}\n`
                         }
                     }
-                    console.log(employeeSalaryMap,"yy");
+                    let otherCostsString = "";
+                    count = 1;
+                    const otherCosts = require('../assets/otherCosts/otherCosts');
+                    for (let key in otherCosts) {
+                        if(otherCosts.hasOwnProperty(key)){
+                            otherCostsMap[count] = otherCosts[key];
+                            otherCostsString += `${count++}. ${key} : $${numeral(otherCosts[key]).format('0,0')}\n`
+                        }
+                    }
+                    console.log(otherCostsMap);
                     convo.setVar("employee_salary_string", employeeSalaryString);
+                    convo.setVar("other_costs_string", otherCostsString);
                     next();
                 })
 
@@ -1541,7 +1652,7 @@ module.exports = function(controller) {
                                 if(employeeSalaryMap[`${number}`]) {
                                     chosenEmployees.push(employeeSalaryMap[`${number}`]);
                                 }
-                            })
+                            });
                             console.log("Categories chosen: ", chosenEmployees);
                             if(!chosenEmployees.length){
                                 bot.reply(message, {
@@ -1553,6 +1664,7 @@ module.exports = function(controller) {
                             }
                             let overallEmployeesCost = 0;
                             overallEmployeesCost = chosenEmployees.reduce( (sum , current) => sum + current ,0);
+                            totalEmployeesSalary = overallEmployeesCost;
                             convo.setVar("overall_employees_cost", numeral(overallEmployeesCost.toFixed(2)).format('0,0.00'));
                             // let totalCost = 0;
                             // chosenEmployees.forEach( element => {
@@ -1567,12 +1679,20 @@ module.exports = function(controller) {
                 "determine_startup_costs_thread")
 
                 convo.addMessage({
-                    text : "If you hire these people your likely costs are going to be ${{{vars.overall_employees_cost}}} , excluding health and fringe benefits."
+                    text : "If you hire these people your costs are going to be about ${{{vars.overall_employees_cost}}}."
                 },"determine_startup_costs_thread")
 
                 convo.addMessage({
-                    text : "Great. Here are some other common costs for young businesses.\n1. Rent and utilities\n2. Software\n3. Machinery\n4. Legal fees\n5. Advertising\n6. Interest\n7. Insurance and license"
+                    // text : "Startups have other costs too. Here are some others: \n1. Rent and utilities\n2. Software\n3. Machinery\n4. Legal fees\n5. Advertising\n6. Interest\n7. Insurance and license"
+                    text : "Startups have other costs too. Here are some others:"
                 },"determine_startup_costs_thread")
+
+
+
+                convo.addMessage({
+                    text : "{{{vars.other_costs_string}}}"
+                },"determine_startup_costs_thread");
+
 
                 convo.addQuestion({
                     text : "Which of these apply to you?"
@@ -1588,7 +1708,30 @@ module.exports = function(controller) {
                     {
                         default : true,
                         callback : function(res, convo) {
+                            let chosenOtherCosts = [];
+                            let numString = res.text.replace(/ /g, '');
+                            let chosenNumbers = numString.split(',');
 
+                            chosenNumbers.forEach( number => {
+                                if(otherCostsMap[`${number}`]) {
+                                    chosenOtherCosts.push(otherCostsMap[`${number}`]);
+                                }
+                            })
+                            console.log("Map elements chosen: ", chosenOtherCosts);
+                            if(!chosenOtherCosts.length){
+                                bot.reply(message, {
+                                    text : "Please choose atleast one."
+                                });
+                                convo.repeat();
+                                convo.next();
+                                return ;
+                            }
+
+                            let totalOtherCosts = 0;
+                            totalOtherCosts = chosenOtherCosts.reduce( (sum , current) => sum + current ,0);
+                            let annualBurn = totalOtherCosts + totalEmployeesSalary;
+                            ideaObj.annualBurn = annualBurn;
+                            convo.setVar("annual_burn", numeral(annualBurn.toFixed(2)).format('0,0.00'));
                             convo.next();
                         }
                     }
@@ -1598,13 +1741,13 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Based on our calculations, you should expect your annual costs to be approximately $1,000,000. Obviously, the costs can be higher or lower depending on location or other factors. But this estimate is a good place to start."
+                    text : "Based on our calculations, you should expect your annual costs to be approximately ${{{vars.annual_burn}}}. Obviously, the costs can be higher or lower. But this is a good place to start."
                 },"determine_startup_costs_thread");
 
 
 
                 convo.addMessage({
-                    text : "We have done quite a bit of analysis. Hang on a sec, while I analyze your responses using my AI powers and create an idea report for you...",
+                    text : "All done for now. Hang on, while I analyze your responses and create a report for you...",
                     action : "deepdive_completed_thread"
                 },"determine_startup_costs_thread");
 

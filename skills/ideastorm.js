@@ -52,24 +52,15 @@ module.exports = function(controller) {
                         text : "Alright, let's start!"
                     });
 
-                    convo.say({
-                        text : "Research shows that to generate a great idea you should brainstorm as many ideas as possible."
-                    });
+
 
                     convo.say({
-                        text : "A good idea isn't too long or too short. But it should, at least, tell us who your customer is, what you will do for them, and how you will get paid."
+                        text: "Type your idea below. Go ahead, we'll research your ideas in the background...✏️",
                     });
 
-                    convo.say({
-                        text: "Type your first idea below. Go ahead. Our algorithms :robot_face: will do some quick research for each one in the background. Once you are done generating ideas, type `deepdive` and pick one idea to develop further.",
-                    });
-
-                    convo.say({
-                        text : "Let's go.✏️"
-                    });
 
                     convo.ask({
-                        text: "If you want to stop, please type `cancel` at any time.",
+                        text: "To stop, type `cancel` any time.",
                     },
                     [
                         {

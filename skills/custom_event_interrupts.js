@@ -24,13 +24,13 @@ module.exports = function(controller) {
         }
         bot.createConversation(message, function(err, convo){
             convo.say({
-                text : "Hi there! I'm StartIQ. I am here to help you develop your business ideas super fast with a little bit of machine learning. 🤖"
+                text : "Hi there! I am here to help you develop your business ideas. 🤖"
             })
             convo.say({
-                text : "Working with me is easy. Just type `ideastorm` to start brainstorming."
+                text : "Just type `ideastorm` to start brainstorming."
             })
             convo.say({
-                text : "Or type `help` at any time to see more options."
+                text : "Type `help` at any time to see more options."
             })
             convo.activate();
         })
