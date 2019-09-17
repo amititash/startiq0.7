@@ -22,12 +22,17 @@ const storeIdea = async (userEmailId, ideaObj) => {
             // snapshotResponse = await axios.get(`${process.env.SNAPSHOT_API_URL}?id=${response.data._id}`);
             // imageUrl = snapshotResponse.data.image;
             // for now imageUrl is following
-            imageUrl = `https://startiq.org/ideareport?id=${response.data._id}`
+            imageUrl = `https://startiq.org/get-report?ko=${response.data._id}`
             let mailData = {
                 to : [userEmailId],
                 from : "engineering@startiq.org",
-                subject : "Test",
-                body : `Here is the link to the report : ${imageUrl}`
+                subject : "Deepdive Report",
+                // body : `Here is the link to the report : ${imageUrl}`
+                templateId : "d-f8b5a2347aec48bebbb25cb224fd1e1f",
+                dynamic_template_data : {
+                    "ideaName" : response.data.ideaDescription,
+                    "reportUrl" : imageUrl
+                }
             }
             await axios.post(mailUrl, mailData);
         }
@@ -83,6 +88,7 @@ module.exports = function(controller) {
                 }
             });
             let existingIdeasCount = 0;
+            let customerSizeEstimate = 0;
             let ideas = [];
             let elasticSearchChosenCompaniesCount = 0;
             let ideaCategoriesMap = {};
@@ -145,7 +151,7 @@ module.exports = function(controller) {
                         text : `It looks like you have ${existingIdeasCount} ideas in your binder. `,
                         attachments:[
                             {
-                                title : "Do you want to generate a new idea?",
+                                title : "Want to generate a new idea?",
                                 callback_id: '123',
                                 attachment_type: 'default',
                                 actions: [
@@ -408,7 +414,7 @@ module.exports = function(controller) {
                             "fields": [
                                 {
                                     "title": "Freshness:",
-                                    "value": `${element.freshness_criteria}`,
+                                    "value": `${element.freshness.toFixed(2)}`,
                                     "short": false
                                 }
                             ],
@@ -692,7 +698,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "What do you want to name your product?\nOne or two words is good."
+                    text : "What is your product's name?\nOne or two words is good."
                 },
                 [
                     {
@@ -757,8 +763,7 @@ module.exports = function(controller) {
                                     userId : store.get(message.user)
                                 }
                             });
-                            convo.transitionTo("choose_similar_companies_thread","Cool. Let's do some analysis.");
-
+                            convo.gotoThread("choose_similar_companies_thread");
                             convo.next();
                         }
                     }
@@ -830,7 +835,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Have you thought about possible competitors? Here are a few suggestions of similar companies to get you started."
+                    text : "Have you thought about possible competitors? Here are a few suggestions of similar companies."
                 },"choose_similar_companies_thread");
 
                 convo.addMessage({
@@ -838,7 +843,7 @@ module.exports = function(controller) {
                 },"choose_similar_companies_thread");
 
                 convo.addQuestion({
-                    text : "What do you think? Remember, a strong competitor may not have the same solution as you but they could be solving the same problem. Enter the numbers, separated by commas, corresponding to any similar companies."
+                    text : "What do you think? Enter the numbers, separated by commas, corresponding to any similar companies."
                 },
                 [
                     {
@@ -869,7 +874,7 @@ module.exports = function(controller) {
 
 
                 convo.addMessage({
-                    text : "Cool, good to see that I know what I'm doing. 😇",
+                    text : "Glad to see that I know what I'm doing. 😇",
                     action : "add_missed_similar_companies_thread"
                 },"choose_similar_companies_thread");
 
@@ -878,7 +883,7 @@ module.exports = function(controller) {
                 convo.addQuestion({
                     attachments:[
                         {
-                            title: 'Are there any companies I missed?',
+                            title: 'Any companies I missed?',
                             callback_id: '123',
                             attachment_type: 'default',
                             actions: [
@@ -993,7 +998,7 @@ module.exports = function(controller) {
 
 
                 convo.addQuestion({
-                    text : "Ok. Which one of these is your top competitor?"
+                    text : "Ok. Which one is your top competitor?"
                 },
                 [
                     {
@@ -1398,15 +1403,11 @@ module.exports = function(controller) {
                 },"chosen_offering_type_thread")
 
                 convo.addMessage({
-                    text : "It looks like the following are possible target customers."
-                },"chosen_offering_type_thread")
-
-                convo.addMessage({
-                    text : "For now, just pick the most important one.✏️"
+                    text : "Are any of these your target customers?"
                 },"chosen_offering_type_thread")
 
                 convo.addQuestion({
-                    text : "{{{vars.target_customer_string}}}"
+                    text : "{{{vars.target_customer_string}}}\n11. None of these"
                 },
                 [
                     {
@@ -1420,9 +1421,14 @@ module.exports = function(controller) {
                         default : true,
                         callback : function(res, convo) {
                             let chosenNumber = res.text;
-                            if(targetCustomersMap[`${res.text}`]){
+                            if(chosenNumber == 11) {
+                                convo.gotoThread("choose_target_customer_thread");
+                                convo.next();
+                            }
+                            else if(targetCustomersMap[`${res.text}`]){
                                 convo.setVar("target_customer", targetCustomersMap[`${res.text}`]);
                                 ideaObj.targetCustomer = targetCustomersMap[`${res.text}`];
+                                convo.gotoThread("chosen_target_customer_thread");
                             }
                             else {
                                 bot.reply(message, {
@@ -1438,13 +1444,120 @@ module.exports = function(controller) {
                 "chosen_offering_type_thread")
 
 
+                convo.addQuestion({
+                    text : "Okay. Please enter the target customer."
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo){
+                            convo.setVar("target_customer", res.text);
+                            ideaObj.targetCustomer = res.text;
+                            convo.gotoThread("chosen_target_customer_thread")
+                            convo.next();
+                        }
+                    }
 
+                ],
+                {},
+                "choose_target_customer_thread");
 
+                convo.beforeThread("chosen_target_customer_thread", async function(convo, next){
+                    let targetCustomer = ideaObj.targetCustomer;
+                    targetCustomer = targetCustomer.toLowerCase();
+                    let url = `${process.env.NUMBER_CONVERTER_API_URL}/customerSizeEstimate?targetCustomer=${targetCustomer}`
+                    console.log(url);
+                    try{
+                        let response = await axios.get(url);
+                        console.log("xx", response.data);
+                        if(response.data.exists){
+                            // if customer exists confirm if estimate correct
+                            customerSizeEstimate = response.data.customerSizeEstimate;
+                            convo.setVar("customer_size_estimate", numeral(customerSizeEstimate).format('0,0'));
+                        }
+                        else {
+                            // if customer doesn't exist, directly ask for estimated size
+                            convo.gotoThread("modify_customer_size_estimate_thread");
+                        }
+                    }
+                    catch(e){
+                        console.log(e);
+                    }
+                    next();
+                })
 
+                convo.addQuestion({
+                    text : "Approximately {{{vars.customer_size_estimate}}} {{{vars.target_customer}}} could potentially buy your product.",
+                    attachments : [
+                        {
+                            title: 'Does that seem correct?',
+                            callback_id: '123',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name":"yes",
+                                    "text": "Yes",
+                                    "value": "yes",
+                                    "type": "button",
+                                },
+                                {
+                                    "name":"no",
+                                    "text": "No",
+                                    "value": "no",
+                                    "type": "button",
+                                }
+                            ]
+                        }
+                    ]
+                },
+                [
+                    {
+                        pattern : bot.utterances.quit,
+                        callback : function(res, convo) {
+                            convo.gotoThread("early_exit_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern : bot.utterances.yes,
+                        callback : function(res, convo){
+                            ideaObj.customerSize = customerSizeEstimate;
+                            convo.setVar("customer_size", numeral(ideaObj.customerSize).format('0,0'));
+                            convo.gotoThread("chosen_customer_size_thread")
+                            convo.next();
+                        }
+                    },
+                    {
+                        pattern : bot.utterances.no,
+                        callback : function(res, convo){
+                            convo.gotoThread("modify_customer_size_estimate_thread");
+                            convo.next();
+                        }
+                    },
+                    {
+                        default : true,
+                        callback : function(res, convo) {
+                            bot.reply(message, {
+                                text : "Please use the buttons below for replying to this question"
+                            })
+                            convo.repeat();
+                            convo.next();
+                        }
+                    },
+                ],
+                {},
+                "chosen_target_customer_thread");
 
 
                 convo.addQuestion({
-                    text : "Now let's turn to market size. How many {{{vars.target_customer}}}s do you think there are that could potentially buy your product?"
+                    text : "How many {{{vars.target_customer}}} could potentially buy your product?"
                 },
                 [
                     {
@@ -1468,16 +1581,17 @@ module.exports = function(controller) {
                                 return ;
                             }
                             ideaObj.customerSize = number;
-                            convo.setVar("total_num_of_users", numeral(number).format('0,0'));
+                            convo.setVar("customer_size", numeral(number).format('0,0'));
+                            convo.gotoThread("chosen_customer_size_thread");
                             convo.next();
                         }
                     }
                 ],
                 {},
-                "chosen_offering_type_thread");
+                "modify_customer_size_estimate_thread");
 
                 convo.addQuestion({
-                    text : "How much do you think {{{vars.target_customer}}}s are willing to pay per year in USD for your product?"
+                    text : "How much do you think {{{vars.target_customer}}} are willing to pay per year in USD for your product?"
                 },
                 [
                     {
@@ -1515,19 +1629,19 @@ module.exports = function(controller) {
                     }
                 ],
                 {},
-                "chosen_offering_type_thread")
+                "chosen_customer_size_thread")
 
 
                 convo.addMessage({
-                    text : "Based on these assumptions your total addressable market has {{{vars.total_num_of_users}}} {{{vars.target_customer}}}s. If this is right, the maximum revenue entire market can generate is ${{{vars.total_addressable_market}}} per year.",
+                    text : "Based on these assumptions your total addressable market has {{{vars.customer_size}}} {{{vars.target_customer}}}. If this is right, the maximum revenue entire market can generate is ${{{vars.total_addressable_market}}} per year.",
                     action : "determine_startup_costs_thread"
-                },"chosen_offering_type_thread");
+                },"chosen_customer_size_thread");
 
 
                 //
                 // convo.addMessage({
                 //     text : "OK. Let me ask you a few questions about your strategy."
-                // },"chosen_offering_type_thread")
+                // },"chosen_customer_size_thread")
                 //
                 // convo.addQuestion({
                 //     text : 'Which one of these best describes how you plan to position your startup in the market?',
@@ -1595,7 +1709,7 @@ module.exports = function(controller) {
                 //     }
                 // ],
                 // {},
-                // "chosen_offering_type_thread");
+                // "chosen_customer_size_thread");
 
                 convo.beforeThread("determine_startup_costs_thread", function(convo, next){
                     let employeeSalaryString = "";
@@ -1623,11 +1737,11 @@ module.exports = function(controller) {
                 })
 
                 convo.addMessage({
-                    text : "All startups have costs. Let's see if we can get a workable estimate for the cost of running your company."
+                    text : "Finally, let's see if we can get a workable estimate for the cost of starting up."
                 },"determine_startup_costs_thread");
 
                 convo.addMessage({
-                    text : "Let's start with salaries. Based on how you describe your company you might need the following team members. I've included some estimates of their likely salaries too."
+                    text : "Do you anticipate hiring for any of these roles?"
                 },"determine_startup_costs_thread")
 
 
@@ -1684,7 +1798,7 @@ module.exports = function(controller) {
 
                 convo.addMessage({
                     // text : "Startups have other costs too. Here are some others: \n1. Rent and utilities\n2. Software\n3. Machinery\n4. Legal fees\n5. Advertising\n6. Interest\n7. Insurance and license"
-                    text : "Startups have other costs too. Here are some others:"
+                    text : "How about these other costs?"
                 },"determine_startup_costs_thread")
 
 
